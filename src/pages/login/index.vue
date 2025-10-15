@@ -1,7 +1,6 @@
 <template>
   <v-container class="login-page pa-0 fill-height" fluid>
     <v-row class="fill-height" no-gutters>
-      <!-- Lado Esquerdo -->
       <v-col class="left-panel d-flex flex-column align-center justify-center" cols="12" md="6">
         <div class="text-center pa-4">
           <v-img
@@ -17,23 +16,28 @@
         </div>
       </v-col>
 
-      <!-- Lado Direito -->
       <v-col class="right-panel d-flex align-center justify-center" cols="12" md="6">
         <v-card class="login-card pa-8" elevation="4">
-          <h3 class="mb-6 text-center font-weight-medium">Acesso ao Sistema</h3>
-          <v-form>
+          <h3 class="mb-6 text-center font-weight-medium" :style="{ color: '#347899' }">Acesso ao Sistema</h3>
+          <v-form @submit.prevent="handleLogin">
             <v-text-field
+              v-model="credentials.login"
               class="mb-4"
               color="#3B7D9D"
-              label="E-mail (Login)"
-              prepend-inner-icon="mdi-email"
+              :disabled="loading"
+              label="Usuário (Login)"
+              prepend-inner-icon="mdi-account"
+              required
               variant="outlined"
             />
             <v-text-field
+              v-model="credentials.senha"
               class="mb-4"
               color="#3B7D9D"
+              :disabled="loading"
               label="Senha"
               prepend-inner-icon="mdi-lock"
+              required
               type="password"
               variant="outlined"
             />
@@ -41,11 +45,14 @@
               block
               class="py-5 text-white"
               color="#3B7D9D"
+              :loading="loading"
               prepend-icon="mdi-login"
+              type="submit"
             >
               Entrar
             </v-btn>
             <div class="text-center mt-3">
+              <p v-if="error" class="text-red">{{ error }}</p>
               <a class="forgot-link" href="#">Esqueci minha senha</a>
             </div>
           </v-form>
@@ -56,6 +63,45 @@
 </template>
 
 <script setup>
+  import { ref } from 'vue'
+  import { useRouter } from 'vue-router'
+  import api from '@/services/api'
+
+  const router = useRouter()
+  const credentials = ref({
+    login: '',
+    senha: '',
+  })
+  const loading = ref(false)
+  const error = ref(null)
+
+  async function handleLogin () {
+    loading.value = true
+    error.value = null
+
+    try {
+      const response = await api.post('/auth/login', credentials.value)
+      const { token, usuario } = response.data
+
+      if (!token || !usuario || !usuario.funcao) {
+        throw new Error('Erro ao fazer login: token ou função ausentes.')
+      }
+
+      localStorage.setItem('token', token)
+      localStorage.setItem('userRole', usuario.funcao)
+      localStorage.setItem('userInfo', JSON.stringify(usuario))
+
+      router.push('/')
+    } catch (error_) {
+      console.error('Erro de Login:', error_)
+      error.value = err.response && err.response.status === 401 ? 'Usuário ou senha incorretos.' : 'Ocorreu um erro ao tentar fazer login.'
+      localStorage.removeItem('token')
+      localStorage.removeItem('userRole')
+      localStorage.removeItem('userInfo')
+    } finally {
+      loading.value = false
+    }
+  }
 </script>
 
 <style scoped>
@@ -79,11 +125,11 @@
 }
 
 .logo {
-  width: 150px; /* Logo maior, conforme solicitado */
+  width: 150px;
   height: auto;
   border-radius: 50%;
   margin-bottom: 20px;
-  box-shadow: 0 0 0 10px rgba(255, 255, 255, 0.1); /* Um leve destaque */
+  box-shadow: 0 0 0 10px rgba(255, 255, 255, 0.1);
 }
 
 .system-title {
@@ -121,4 +167,6 @@
 .forgot-link:hover {
   text-decoration: underline;
 }
+
+.text-red { color: #e53935; }
 </style>
