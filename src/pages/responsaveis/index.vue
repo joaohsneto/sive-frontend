@@ -217,7 +217,7 @@
 
 <script setup>
   import { computed, onMounted, ref } from 'vue'
-  import api from '@/services/api' // Presume-se que o serviço 'api' esteja configurado corretamente
+  import api from '@/services/api'
 
   const responsaveis = ref([])
   const carregando = ref(false)

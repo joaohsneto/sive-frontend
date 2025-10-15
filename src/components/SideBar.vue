@@ -36,8 +36,8 @@
           </v-list-item>
         </template>
 
-        <!-- Submenus perfeitamente alinhados com o “C” -->
         <v-list-item
+          v-if="userRole === 'admin'"
           class="sub-item"
           :class="{ active: isActive('/usuarios') }"
           prepend-icon="mdi-account"
@@ -94,15 +94,22 @@
 </template>
 
 <script setup>
+  import { ref } from 'vue'
   import { useRoute, useRouter } from 'vue-router'
   const route = useRoute()
   const router = useRouter()
+
+  const userRole = ref(localStorage.getItem('userRole') || '')
+  console.log(userRole)
 
   function isActive (path) {
     return route.path === path
   }
 
   function logout () {
+    localStorage.removeItem('token')
+    localStorage.removeItem('userRole')
+    localStorage.removeItem('userInfo')
     router.push('/login')
   }
 </script>
