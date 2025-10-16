@@ -69,9 +69,9 @@
 
       <v-list-item
         class="menu-item"
-        :class="{ active: isActive('/relatorios') }"
+        :class="{ active: isActive('/ficha-sive') }"
         prepend-icon="mdi-file-document"
-        to="/relatorios"
+        to="/ficha-sive"
       >
         <v-list-item-title class="text-white list-title">Gerar Ficha SIVE</v-list-item-title>
       </v-list-item>

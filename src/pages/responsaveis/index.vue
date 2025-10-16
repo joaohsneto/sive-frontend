@@ -80,6 +80,7 @@
                 <v-text-field
                   v-model="responsavelForm.nome"
                   color="#347899"
+                  density="compact"
                   label="Nome Completo"
                   required
                   :rules="[v => !!v || 'Nome é obrigatório']"
@@ -91,6 +92,7 @@
                 <v-text-field
                   v-model="responsavelForm.cpf"
                   color="#347899"
+                  density="compact"
                   label="CPF"
                   maxlength="11"
                   required
@@ -107,6 +109,7 @@
                 <v-text-field
                   v-model="responsavelForm.email"
                   color="#347899"
+                  density="compact"
                   label="E-mail"
                   required
                   :rules="[v => !!v || 'E-mail é obrigatório', v => /.+@.+\..+/.test(v) || 'E-mail deve ser válido']"
@@ -119,6 +122,7 @@
                 <v-text-field
                   v-model="responsavelForm.funcao"
                   color="#347899"
+                  density="compact"
                   hint="Opcional"
                   label="Função"
                   persistent-hint
@@ -130,6 +134,7 @@
                 <v-text-field
                   v-model="responsavelForm.telefone"
                   color="#347899"
+                  density="compact"
                   hint="Opcional"
                   label="Telefone (Fixo/Celular)"
                   persistent-hint
@@ -141,6 +146,7 @@
                 <v-text-field
                   v-model="responsavelForm.whatsapp"
                   color="#347899"
+                  density="compact"
                   hint="Opcional"
                   label="Telefone WhatsApp"
                   persistent-hint
@@ -182,7 +188,7 @@
         </v-card-title>
         <v-card-text :style="{ color: '#347899' }">
           Tem certeza que deseja remover o responsável
-          <strong>{{ responsavelSelecionado?.nome }}</strong>?
+          <strong>{{ responsavel?.nome }}</strong>?
         </v-card-text>
         <v-card-actions class="pt-4">
           <v-spacer />
@@ -227,7 +233,7 @@
   const editando = ref(false)
   const formValido = ref(false)
   const formRef = ref(null)
-  const responsavelSelecionado = ref(null)
+  const responsavel = ref(null)
   const filtro = ref('')
 
   const snackbar = ref({
@@ -236,7 +242,7 @@
     color: 'success',
   })
 
-  // Estrutura do formulário (DTO)
+  // === Estrutura do formulário ===
   const responsavelForm = ref({
     responsavel_id: null,
     nome: '',
@@ -247,7 +253,7 @@
     funcao: '',
   })
 
-  // Definição dos cabeçalhos da v-data-table
+  // === Definição dos cabeçalhos da v-data-table ===
   const headers = [
     { title: 'Nome', key: 'nome' },
     { title: 'CPF', key: 'cpf' },
@@ -282,7 +288,6 @@
   async function carregarResponsaveis () {
     try {
       carregando.value = true
-      // Endpoint GET: http://localhost:3333/api/cadastros/responsavel
       const { data } = await api.get('/cadastros/responsavel')
       responsaveis.value = data
     } catch (error) {
@@ -293,7 +298,7 @@
   }
 
   function abrirModalNovo () {
-    limparForm()
+    responsavelForm.value = {}
     editando.value = false
     modalAberto.value = true
   }
@@ -308,40 +313,18 @@
     modalAberto.value = false
   }
 
-  function limparForm () {
-    responsavelForm.value = {
-      responsavel_id: null,
-      nome: '',
-      cpf: '',
-      email: '',
-      telefone: '',
-      whatsapp: '',
-      funcao: '',
-    }
-    formRef.value?.resetValidation()
-  }
-
   async function salvarResponsavel () {
     if (!formRef.value?.validate()) return
     carregandoBtn.value = true
 
-    // Monta o payload, removendo o ID e campos vazios (opcionais) para a API
     const payload = { ...responsavelForm.value }
-    delete payload.responsavel_id // O ID não vai no body de POST/PUT
-
-    // Deleta campos opcionais vazios para enviar o body JSON corretamente, se a API exigir
-    if (payload.telefone === '') delete payload.telefone
-    if (payload.whatsapp === '') delete payload.whatsapp
-    if (payload.funcao === '') delete payload.funcao
 
     try {
       if (editando.value) {
-        // Endpoint PUT: http://localhost:3333/api/cadastros/responsavel/update?responsavel_id=...
-        const id = responsavelForm.value.responsavel_id
-        await api.put(`/cadastros/responsavel/update?responsavel_id=${id}`, payload)
+        await api.put(`/cadastros/responsavel/update?responsavel_id=${payload.responsavel_id}`, payload)
         exibirToast('Responsável atualizado com sucesso!', 'success')
       } else {
-        // Endpoint POST: http://localhost:3333/api/cadastros/responsavel
+        delete payload.responsavel_id
         await api.post('/cadastros/responsavel', payload)
         exibirToast('Responsável cadastrado com sucesso!', 'success')
       }
@@ -356,7 +339,7 @@
 
   // === Exclusão ===
   function abrirModalConfirmarExclusao (item) {
-    responsavelSelecionado.value = item
+    responsavel.value = item
     modalExcluir.value = true
   }
 
@@ -367,8 +350,7 @@
   async function confirmarExclusao () {
     carregandoBtn.value = true
     try {
-      // Endpoint DELETE: http://localhost:3333/api/cadastros/responsavel/delete?responsavel_id=...
-      const id = responsavelSelecionado.value.responsavel_id
+      const id = responsavel.value.responsavel_id
       await api.delete(`/cadastros/responsavel/delete?responsavel_id=${id}`)
       exibirToast('Responsável excluído com sucesso!', 'success')
       modalExcluir.value = false
@@ -381,7 +363,7 @@
   }
 
   // === Toast ===
-  function exibirToast (text, color = 'success') {
+  function exibirToast (text, color) {
     snackbar.value = { show: true, text, color }
   }
 
@@ -396,75 +378,15 @@
   background-color: #347899 !important;
   color: white !important;
 }
-
-/* Customização para v-text-field com variant="outlined" */
-/* Ajusta as variáveis de cor globalmente para os text-fields com o estilo default/outlined */
-.v-text-field.v-input--density-default {
-    /* 1. Mudar a cor da borda quando NÃO está focado (default) para o azul */
-    --v-field-border-color: #347899;
-    /* 2. Mudar a cor da borda quando está focado para o azul */
-    --v-theme-primary: #347899;
-    /* 3. Mudar a cor do label para o azul */
-    --v-field-label-color: #347899;
-}
-
-/* Sobrescreve a cor da borda quando não está focada */
-.v-field--variant-outlined .v-field__outline {
-    border-color: var(--v-field-border-color) !important;
-    opacity: 1 !important;
-}
-
-/* Sobrescreve a cor da borda quando está focada */
-.v-field--variant-outlined.v-field--focused .v-field__outline::after {
-    border-color: var(--v-theme-primary) !important;
-    border-width: 2px !important;
-}
-
-/* Garante que o texto do input também seja azul */
+/* Para o `v-text-field` do formulário e da pesquisa na tabela */
 .v-text-field .v-field__input {
     color: #347899 !important;
 }
-
-/* Garante a cor azul para o label, tanto em repouso quanto flutuando */
-.v-field__label {
-    color: var(--v-field-label-color) !important;
-    opacity: 1 !important;
-}
-
-/* Altera a cor do placeholder para azul se for um placeholder persistente ou normal */
-.v-field__input::placeholder {
-    color: #347899 !important;
-    opacity: 1;
-}
-
-/* Para o `v-text-field` de pesquisa na tabela */
-.v-text-field.v-input--density-compact .v-field__input {
-    color: #347899 !important;
-}
-.v-text-field.v-input--density-compact .v-field__label {
-    color: #347899 !important;
-}
-/* Aumenta a especificidade para a borda do campo de pesquisa (se for outlined também) */
-.v-text-field.v-input--density-compact .v-field__outline {
-    border-color: #347899 !important;
-}
-.v-text-field.v-input--density-compact.v-field--focused .v-field__outline::after {
-    border-color: #347899 !important;
-    border-width: 2px !important;
-}
-
-/* === Estilos para a Coluna Ações (Copia do exemplo anterior) === */
-
-/* 1. Centralizar o conteúdo da célula de Ações e impedir quebra de linha dos ícones */
+/* Para os icones da coluna Ações não quebrar a linha */
 .actions-cell {
-  display: flex; /* Habilita flexbox para alinhar os botões */
-  justify-content: center; /* **Centraliza** os botões horizontalmente */
+  display: flex;
+  justify-content: center;
   align-items: center;
-  flex-wrap: nowrap; /* **Impede a quebra de linha** (essencial para telas pequenas) */
-}
-
-/* Adicionando customização de cor para o ícone de pesquisa (mdi-magnify) */
-.v-input--variant-outlined .v-input__prepend-inner .v-icon {
-    color: #347899 !important;
+  flex-wrap: nowrap;
 }
 </style>
