@@ -80,6 +80,7 @@
                 <v-text-field
                   v-model="usuarioForm.nome_usuario"
                   color="#347899"
+                  density="compact"
                   label="Nome Completo"
                   required
                   :rules="[v => !!v || 'Nome é obrigatório']"
@@ -91,6 +92,7 @@
                 <v-text-field
                   v-model="usuarioForm.login"
                   color="#347899"
+                  density="compact"
                   label="Login"
                   required
                   :rules="[v => !!v || 'Login é obrigatório']"
@@ -102,6 +104,7 @@
                 <v-text-field
                   v-model="usuarioForm.email"
                   color="#347899"
+                  density="compact"
                   label="E-mail"
                   required
                   :rules="[v => !!v || 'E-mail é obrigatório', v => /.+@.+\..+/.test(v) || 'E-mail deve ser válido']"
@@ -114,6 +117,7 @@
                 <v-text-field
                   v-model="usuarioForm.cpf"
                   color="#347899"
+                  density="compact"
                   label="CPF"
                   maxlength="11"
                   required
@@ -130,6 +134,7 @@
                 <v-text-field
                   v-model="usuarioForm.funcao"
                   color="#347899"
+                  density="compact"
                   label="Função"
                   required
                   :rules="[v => !!v || 'Função é obrigatória']"
@@ -141,6 +146,7 @@
                 <v-text-field
                   v-model="usuarioForm.senha"
                   color="#347899"
+                  density="compact"
                   label="Senha"
                   :required="!editando"
                   :rules="!editando ? [v => !!v || 'Senha é obrigatória para novo cadastro'] : []"
@@ -271,15 +277,10 @@
 
   // === Funções de Máscara (NOVO) ===
   function maskCpf (event) {
-    // 1. Remove qualquer caractere que não seja dígito (0-9)
     let value = event.target.value.replace(/\D/g, '')
-
-    // 2. Limita o valor a 11 caracteres (garantia extra, mas o maxlength já faz isso)
     if (value.length > 11) {
       value = value.slice(0, 11)
     }
-
-    // 3. Atualiza o v-model do CPF com o valor limpo
     usuarioForm.value.cpf = value
   }
 
@@ -401,75 +402,15 @@
   background-color: #347899 !important;
   color: white !important;
 }
-
-/* Customização para v-text-field com variant="outlined" */
-/* Ajusta as variáveis de cor globalmente para os text-fields com o estilo default/outlined */
-.v-text-field.v-input--density-default {
-    /* 1. Mudar a cor da borda quando NÃO está focado (default) para o azul */
-    --v-field-border-color: #347899;
-    /* 2. Mudar a cor da borda quando está focado para o azul */
-    --v-theme-primary: #347899;
-    /* 3. Mudar a cor do label para o azul */
-    --v-field-label-color: #347899;
-}
-
-/* Sobrescreve a cor da borda quando não está focada */
-.v-field--variant-outlined .v-field__outline {
-    border-color: var(--v-field-border-color) !important;
-    opacity: 1 !important;
-}
-
-/* Sobrescreve a cor da borda quando está focada */
-.v-field--variant-outlined.v-field--focused .v-field__outline::after {
-    border-color: var(--v-theme-primary) !important;
-    border-width: 2px !important;
-}
-
-/* Garante que o texto do input também seja azul */
-.v-text-field .v-field__input {
-    color: #347899 !important;
-}
-
-/* Garante a cor azul para o label, tanto em repouso quanto flutuando */
-.v-field__label {
-    color: var(--v-field-label-color) !important;
-    opacity: 1 !important;
-}
-
-/* Altera a cor do placeholder para azul se for um placeholder persistente ou normal */
-.v-field__input::placeholder {
-    color: #347899 !important;
-    opacity: 1;
-}
-
-/* Para o `v-text-field` de pesquisa na tabela */
+/* Para o `v-text-field` do formulário e da pesquisa na tabela */
 .v-text-field.v-input--density-compact .v-field__input {
     color: #347899 !important;
 }
-.v-text-field.v-input--density-compact .v-field__label {
-    color: #347899 !important;
-}
-/* Aumenta a especificidade para a borda do campo de pesquisa (se for outlined também) */
-.v-text-field.v-input--density-compact .v-field__outline {
-    border-color: #347899 !important;
-}
-.v-text-field.v-input--density-compact.v-field--focused .v-field__outline::after {
-    border-color: #347899 !important;
-    border-width: 2px !important;
-}
-
-/* === Estilos para a Coluna Ações (Copia do exemplo anterior) === */
-
-/* 1. Centralizar o conteúdo da célula de Ações e impedir quebra de linha dos ícones */
+/* Para os icones da coluna Ações não quebrar a linha */
 .actions-cell {
-  display: flex; /* Habilita flexbox para alinhar os botões */
-  justify-content: center; /* **Centraliza** os botões horizontalmente */
+  display: flex;
+  justify-content: center;
   align-items: center;
-  flex-wrap: nowrap; /* **Impede a quebra de linha** (essencial para telas pequenas) */
-}
-
-/* Adicionando customização de cor para o ícone de pesquisa (mdi-magnify) */
-.v-input--variant-outlined .v-input__prepend-inner .v-icon {
-    color: #347899 !important;
+  flex-wrap: nowrap;
 }
 </style>

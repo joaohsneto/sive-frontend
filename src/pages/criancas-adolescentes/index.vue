@@ -81,6 +81,7 @@
                 <v-text-field
                   v-model="form.nome"
                   color="#347899"
+                  density="compact"
                   label="Nome Completo"
                   required
                   :rules="[v => !!v || 'Nome é obrigatório']"
@@ -92,6 +93,7 @@
                 <v-text-field
                   v-model="form.cpf"
                   color="#347899"
+                  density="compact"
                   inputmode="numeric"
                   label="CPF (somente números)"
                   maxlength="11"
@@ -106,6 +108,7 @@
                 <v-text-field
                   v-model="form.email"
                   color="#347899"
+                  density="compact"
                   label="E-mail"
                   required
                   :rules="[
@@ -121,6 +124,7 @@
                 <v-text-field
                   v-model="form.idade_nascimento"
                   color="#347899"
+                  density="compact"
                   label="Idade / Data de Nascimento"
                   variant="outlined"
                 />
@@ -130,6 +134,7 @@
                 <v-text-field
                   v-model="form.filiacao_pai"
                   color="#347899"
+                  density="compact"
                   label="Filiação Pai"
                   variant="outlined"
                 />
@@ -139,6 +144,7 @@
                 <v-text-field
                   v-model="form.filiacao_mae"
                   color="#347899"
+                  density="compact"
                   label="Filiação Mãe"
                   variant="outlined"
                 />
@@ -148,6 +154,7 @@
                 <v-text-field
                   v-model="form.com_quem_mora"
                   color="#347899"
+                  density="compact"
                   label="Com Quem Mora"
                   variant="outlined"
                 />
@@ -157,6 +164,7 @@
                 <v-text-field
                   v-model="form.telefone"
                   color="#347899"
+                  density="compact"
                   label="Telefone"
                   type="tel"
                   variant="outlined"
@@ -167,6 +175,7 @@
                 <v-text-field
                   v-model="form.endereco"
                   color="#347899"
+                  density="compact"
                   label="Endereço"
                   variant="outlined"
                 />
@@ -176,6 +185,7 @@
                 <v-text-field
                   v-model="form.ponto_referencia"
                   color="#347899"
+                  density="compact"
                   label="Ponto de Referência"
                   variant="outlined"
                 />
@@ -185,6 +195,7 @@
                 <v-text-field
                   v-model="form.contato"
                   color="#347899"
+                  density="compact"
                   label="Contato"
                   variant="outlined"
                 />
@@ -194,6 +205,7 @@
                 <v-text-field
                   v-model="form.telefone_contato"
                   color="#347899"
+                  density="compact"
                   label="Telefone Contato"
                   type="tel"
                   variant="outlined"
@@ -204,6 +216,7 @@
                 <v-text-field
                   v-model="form.sexo"
                   color="#347899"
+                  density="compact"
                   label="Sexo"
                   variant="outlined"
                 />
@@ -213,6 +226,7 @@
                 <v-text-field
                   v-model="form.registro_civil"
                   color="#347899"
+                  density="compact"
                   label="Registro Civil"
                   variant="outlined"
                 />
@@ -222,6 +236,7 @@
                 <v-text-field
                   v-model="form.comunidade_originarios"
                   color="#347899"
+                  density="compact"
                   label="Comunidade/Originários"
                   variant="outlined"
                 />
@@ -231,6 +246,7 @@
                 <v-text-field
                   v-model="form.deficiencia"
                   color="#347899"
+                  density="compact"
                   label="Deficiência"
                   variant="outlined"
                 />
@@ -240,6 +256,7 @@
                 <v-text-field
                   v-model="form.condicao_saude"
                   color="#347899"
+                  density="compact"
                   label="Condição de Saúde"
                   variant="outlined"
                 />
@@ -249,6 +266,7 @@
                 <v-text-field
                   v-model="form.programas_sociais"
                   color="#347899"
+                  density="compact"
                   label="Programas Sociais"
                   variant="outlined"
                 />
@@ -258,6 +276,7 @@
                 <v-text-field
                   v-model="form.ocupacao_atividade"
                   color="#347899"
+                  density="compact"
                   label="Ocupação/Atividade"
                   variant="outlined"
                 />
@@ -267,6 +286,7 @@
                 <v-text-field
                   v-model="form.renda_familiar"
                   color="#347899"
+                  density="compact"
                   label="Renda Familiar"
                   variant="outlined"
                 />
@@ -276,6 +296,7 @@
                 <v-text-field
                   v-model="form.tipo_imovel"
                   color="#347899"
+                  density="compact"
                   label="Tipo de Imóvel"
                   variant="outlined"
                 />

@@ -20,6 +20,7 @@ declare module 'vue-router/auto-routes' {
   export interface RouteNamedMap {
     '/': RouteRecordInfo<'/', '/', Record<never, never>, Record<never, never>>,
     '/criancas-adolescentes/': RouteRecordInfo<'/criancas-adolescentes/', '/criancas-adolescentes', Record<never, never>, Record<never, never>>,
+    '/ficha-sive/': RouteRecordInfo<'/ficha-sive/', '/ficha-sive', Record<never, never>, Record<never, never>>,
     '/login/': RouteRecordInfo<'/login/', '/login', Record<never, never>, Record<never, never>>,
     '/responsaveis/': RouteRecordInfo<'/responsaveis/', '/responsaveis', Record<never, never>, Record<never, never>>,
     '/usuarios/': RouteRecordInfo<'/usuarios/', '/usuarios', Record<never, never>, Record<never, never>>,
@@ -42,6 +43,10 @@ declare module 'vue-router/auto-routes' {
     }
     'src/pages/criancas-adolescentes/index.vue': {
       routes: '/criancas-adolescentes/'
+      views: never
+    }
+    'src/pages/ficha-sive/index.vue': {
+      routes: '/ficha-sive/'
       views: never
     }
     'src/pages/login/index.vue': {
