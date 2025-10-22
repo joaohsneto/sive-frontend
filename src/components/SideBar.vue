@@ -1,9 +1,21 @@
 <template>
+  <!-- Botão hamburguer (só aparece em telas pequenas) -->
+  <v-btn
+    v-if="!drawer && isMobile"
+    class="hamburger-btn"
+    color="white"
+    icon="mdi-menu"
+    @click="drawer = true"
+  />
+
+  <!-- Drawer lateral -->
   <v-navigation-drawer
+    v-model="drawer"
     app
     class="my-drawer"
     color="#2c3e50"
-    permanent
+    :permanent="!isMobile"
+    :temporary="isMobile"
     width="260"
   >
     <!-- LOGO E TÍTULO -->
@@ -94,13 +106,28 @@
 </template>
 
 <script setup>
-  import { ref } from 'vue'
+  import { onBeforeUnmount, onMounted, ref } from 'vue'
   import { useRoute, useRouter } from 'vue-router'
+
   const route = useRoute()
   const router = useRouter()
 
   const userRole = ref(localStorage.getItem('userRole') || '')
-  console.log(userRole)
+  const drawer = ref(true)
+  const isMobile = ref(false)
+
+  function checkMobile () {
+    isMobile.value = window.innerWidth < 960
+    drawer.value = !isMobile.value
+  }
+
+  onMounted(() => {
+    checkMobile()
+    window.addEventListener('resize', checkMobile)
+  })
+  onBeforeUnmount(() => {
+    window.removeEventListener('resize', checkMobile)
+  })
 
   function isActive (path) {
     return route.path === path
@@ -117,6 +144,25 @@
 <style scoped>
 .text-white { color: #ecf0f1 !important; }
 
+/* 🔹 Botão hamburguer fixo e discreto no canto */
+.hamburger-btn {
+  position: fixed;
+  top: 12px;
+  left: 12px;
+  z-index: 2000;
+  background-color: rgba(44, 62, 80, 0.85);
+  box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+  border-radius: 8px;
+  width: 42px;
+  height: 42px;
+  transition: all 0.2s ease;
+}
+
+.hamburger-btn:hover {
+  background-color: rgba(44, 62, 80, 0.95);
+  transform: scale(1.05);
+}
+
 /* layout geral */
 .my-drawer .v-navigation-drawer__content {
   padding-left: 4px !important;
@@ -125,20 +171,17 @@
 
 .menu-list { padding-left: 0 !important; }
 
-/* Ícones colados no texto e tudo alinhado */
 ::v-deep .v-list-item {
   min-height: 36px !important;
   padding-left: 2px !important;
   padding-right: 4px !important;
 }
 
-/* remove completamente o recuo padrão dos subitens */
 .sub-item {
   padding-left: 0px !important;
-  margin-left: -12px !important; /* traz os submenus exatamente abaixo do C */
+  margin-left: -12px !important;
 }
 
-/* Ícones mais próximos ao texto */
 ::v-deep .v-list-item__prepend {
   width: 24px !important;
   margin-left: 0 !important;
@@ -148,7 +191,6 @@
   justify-content: center;
 }
 
-/* título com quebra e tamanho controlado */
 .list-title {
   white-space: normal !important;
   word-break: break-word;
@@ -158,7 +200,6 @@
   line-height: 1.1;
 }
 
-/* hover e active com transição suave */
 ::v-deep .v-list-item {
   transition: background-color 0.25s ease, transform 0.2s ease;
 }
@@ -173,7 +214,6 @@
   transition: background-color 0.25s ease, transform 0.2s ease;
 }
 
-/* Rodapé: botão sair mais alto do fundo */
 .logout-container {
   position: absolute;
   bottom: 20px;
@@ -194,5 +234,34 @@
 .logout-btn ::v-deep .v-list-item__prepend {
   width: 28px !important;
   margin-right: 6px !important;
+}
+
+/* 🔧 Evita o scroll do menu lateral */
+::v-deep(.v-navigation-drawer__content) {
+  overflow-y: hidden !important;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  height: 100vh;
+}
+
+/* Ajusta a área de menu para ocupar o espaço entre o topo e o botão sair */
+.menu-list {
+  flex: 1;
+  overflow-y: auto;
+}
+
+/* Em telas menores, o menu vira conteúdo fluido */
+@media (max-width: 960px) {
+  ::v-deep(.v-navigation-drawer__content) {
+    height: auto !important;
+    overflow-y: visible !important;
+  }
+
+  .logout-container {
+    position: relative !important;
+    bottom: 0 !important;
+    margin-top: 1rem;
+  }
 }
 </style>

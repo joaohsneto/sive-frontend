@@ -18,7 +18,9 @@
 
       <v-col class="right-panel d-flex align-center justify-center" cols="12" md="6">
         <v-card class="login-card pa-8" elevation="4">
-          <h3 class="mb-6 text-center font-weight-medium" :style="{ color: '#347899' }">Acesso ao Sistema</h3>
+          <h3 class="mb-6 text-center font-weight-medium" :style="{ color: '#347899' }">
+            Acesso ao Sistema
+          </h3>
           <v-form @submit.prevent="handleLogin">
             <v-text-field
               v-model="credentials.login"
@@ -51,29 +53,80 @@
             >
               Entrar
             </v-btn>
-            <div class="text-center mt-3">
-              <p v-if="error" class="text-red">{{ error }}</p>
+            <!-- <div class="text-center mt-3">
               <a class="forgot-link" href="#">Esqueci minha senha</a>
-            </div>
+            </div> -->
           </v-form>
         </v-card>
       </v-col>
     </v-row>
+
+    <!-- 🎉 Snackbar (sistema de notificações) -->
+    <v-slide-y-transition>
+      <v-snackbar
+        v-model="showToast"
+        class="custom-toast"
+        :color="toastColor"
+        elevation="8"
+        location="top center"
+        timeout="3500"
+        variant="elevated"
+      >
+        <div class="d-flex align-center">
+          <v-icon class="mr-2" :icon="toastIcon" />
+          <span>{{ toastMessage }}</span>
+        </div>
+      </v-snackbar>
+    </v-slide-y-transition>
   </v-container>
 </template>
 
 <script setup>
-  import { ref } from 'vue'
+  import { computed, ref } from 'vue'
   import { useRouter } from 'vue-router'
   import api from '@/services/api'
 
   const router = useRouter()
+
+  // Dados do formulário
   const credentials = ref({
     login: '',
     senha: '',
   })
   const loading = ref(false)
   const error = ref(null)
+
+  // 🔔 Controle do toast
+  const showToast = ref(false)
+  const toastMessage = ref('')
+  const toastType = ref('error') // pode ser: success, error, warning, info
+
+  // Define cor e ícone com base no tipo do toast
+  const toastColor = computed(() => {
+    switch (toastType.value) {
+      case 'success': { return 'success'
+      }
+      case 'warning': { return 'warning'
+      }
+      case 'info': { return 'info'
+      }
+      default: { return 'error'
+      }
+    }
+  })
+
+  const toastIcon = computed(() => {
+    switch (toastType.value) {
+      case 'success': { return 'mdi-check-circle-outline'
+      }
+      case 'warning': { return 'mdi-alert-outline'
+      }
+      case 'info': { return 'mdi-information-outline'
+      }
+      default: { return 'mdi-alert-circle-outline'
+      }
+    }
+  })
 
   async function handleLogin () {
     loading.value = true
@@ -91,10 +144,25 @@
       localStorage.setItem('userRole', usuario.funcao)
       localStorage.setItem('userInfo', JSON.stringify(usuario))
 
-      router.push('/')
+      // ✅ Exibe toast de sucesso
+      toastMessage.value = 'Login realizado com sucesso!'
+      toastType.value = 'success'
+      showToast.value = true
+
+      setTimeout(() => router.push('/'), 1000)
     } catch (error_) {
       console.error('Erro de Login:', error_)
-      error.value = err.response && err.response.status === 401 ? 'Usuário ou senha incorretos.' : 'Ocorreu um erro ao tentar fazer login.'
+
+      toastType.value = 'error'
+      if (error_.response?.data?.message) {
+        toastMessage.value = error_.response.data.message
+      } else if (error_.message) {
+        toastMessage.value = error_.message
+      } else {
+        toastMessage.value = 'Ocorreu um erro ao tentar fazer login.'
+      }
+      showToast.value = true
+
       localStorage.removeItem('token')
       localStorage.removeItem('userRole')
       localStorage.removeItem('userInfo')
@@ -114,14 +182,6 @@
   color: white;
   text-align: center;
   padding: 40px;
-}
-
-.logo-container {
-  background-color: rgba(255, 255, 255, 0.08);
-  border-radius: 50%;
-  padding: 25px;
-  margin-bottom: 20px;
-  box-shadow: 0 0 20px rgba(255, 255, 255, 0.15);
 }
 
 .logo {
@@ -168,5 +228,12 @@
   text-decoration: underline;
 }
 
-.text-red { color: #e53935; }
+/* 🌟 Toast estilizado */
+.custom-toast {
+  border-radius: 12px;
+  font-weight: 500;
+  text-align: center;
+  padding: 12px 20px;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.25);
+}
 </style>

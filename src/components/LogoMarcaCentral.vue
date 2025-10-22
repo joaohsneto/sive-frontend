@@ -17,5 +17,6 @@
 
 .watermark-logo {
     opacity: 0.2 !important;
+    max-height: 80vh;
 }
 </style>

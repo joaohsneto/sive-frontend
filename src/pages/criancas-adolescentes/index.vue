@@ -98,9 +98,13 @@
                   label="CPF (somente números)"
                   maxlength="11"
                   required
-                  :rules="[v => !!v || 'CPF é obrigatório', v => (v && v.length === 11) || 'CPF deve ter 11 dígitos']"
+                  :rules="[
+                    v => !!v || 'CPF é obrigatório',
+                    v => (v && v.length === 11) || 'CPF deve ter 11 dígitos'
+                  ]"
                   type="tel"
                   variant="outlined"
+                  @input="form.cpf = form.cpf.replace(/\D/g, '')"
                 />
               </v-col>
 
@@ -165,9 +169,15 @@
                   v-model="form.telefone"
                   color="#347899"
                   density="compact"
+                  inputmode="numeric"
                   label="Telefone"
+                  maxlength="11"
+                  :rules="[
+                    v => !v || (v.length >= 10 && v.length <= 11) || 'Telefone deve ter entre 10 e 11 dígitos'
+                  ]"
                   type="tel"
                   variant="outlined"
+                  @input="form.telefone = form.telefone.replace(/\D/g, '')"
                 />
               </v-col>
 
@@ -206,9 +216,15 @@
                   v-model="form.telefone_contato"
                   color="#347899"
                   density="compact"
+                  inputmode="numeric"
                   label="Telefone Contato"
+                  maxlength="11"
+                  :rules="[
+                    v => !v || (v.length >= 10 && v.length <= 11) || 'Telefone deve ter entre 10 e 11 dígitos'
+                  ]"
                   type="tel"
                   variant="outlined"
+                  @input="form.telefone_contato = form.telefone_contato.replace(/\D/g, '')"
                 />
               </v-col>
 
@@ -359,14 +375,24 @@
       </v-card>
     </v-dialog>
 
-    <v-snackbar
-      v-model="snackbar.show"
-      :color="snackbar.color"
-      location="top"
-      timeout="4000"
-    >
-      {{ snackbar.text }}
-    </v-snackbar>
+    <!-- 🎉 Snackbar estilizado e animado -->
+    <v-slide-y-transition>
+      <v-snackbar
+        v-model="snackbar.show"
+        class="custom-toast"
+        :color="snackbar.color"
+        elevation="8"
+        location="top center"
+        timeout="4000"
+        variant="elevated"
+      >
+        <div class="d-flex align-center">
+          <v-icon class="mr-2" :icon="snackbar.icon" />
+          <span>{{ snackbar.text }}</span>
+        </div>
+      </v-snackbar>
+    </v-slide-y-transition>
+
   </div>
 </template>
 
@@ -391,7 +417,27 @@
     show: false,
     text: '',
     color: 'success',
+    icon: 'mdi-check-circle-outline',
   })
+
+  // === Toast moderno ===
+  function exibirToast (text, type = 'info') {
+    const config = {
+      success: { color: 'success', icon: 'mdi-check-circle-outline' },
+      error: { color: 'error', icon: 'mdi-alert-circle-outline' },
+      warning: { color: 'warning', icon: 'mdi-alert-outline' },
+      info: { color: 'info', icon: 'mdi-information-outline' },
+    }
+
+    const { color, icon } = config[type] || config.info
+
+    snackbar.value = {
+      show: true,
+      text,
+      color,
+      icon,
+    }
+  }
 
   // Estrutura do formulário (baseado nos campos de POST)
   const formModelo = {
@@ -537,11 +583,6 @@
     }
   }
 
-  // === Toast ===
-  function exibirToast (text, color = 'success') {
-    snackbar.value = { show: true, text, color }
-  }
-
   onMounted(() => {
     carregarCadastros()
   })
@@ -554,65 +595,10 @@
   color: white !important;
 }
 
-/* Customização para v-text-field com variant="outlined" */
-/* Ajusta as variáveis de cor globalmente para os text-fields com o estilo default/outlined */
-.v-text-field.v-input--density-default {
-    /* 1. Mudar a cor da borda quando NÃO está focado (default) para o azul */
-    --v-field-border-color: #347899;
-    /* 2. Mudar a cor da borda quando está focado para o azul */
-    --v-theme-primary: #347899;
-    /* 3. Mudar a cor do label para o azul */
-    --v-field-label-color: #347899;
-}
-
-/* Sobrescreve a cor da borda quando não está focada */
-.v-field--variant-outlined .v-field__outline {
-    border-color: var(--v-field-border-color) !important;
-    opacity: 1 !important;
-}
-
-/* Sobrescreve a cor da borda quando está focada */
-/* O Vuetify usa um pseudo-elemento ::after para a linha de destaque */
-.v-field--variant-outlined.v-field--focused .v-field__outline::after {
-    border-color: var(--v-theme-primary) !important;
-    border-width: 2px !important; /* Assegura que a borda do foco é visível */
-}
-
-/* Garante que o texto do input também seja azul */
-.v-text-field .v-field__input {
-    color: #347899 !important;
-}
-
-/* Garante a cor azul para o label, tanto em repouso quanto flutuando */
-.v-field__label {
-    color: var(--v-field-label-color) !important;
-    opacity: 1 !important;
-}
-
-/* Altera a cor do placeholder para azul se for um placeholder persistente ou normal */
-.v-field__input::placeholder {
-    color: #347899 !important;
-    opacity: 1;
-}
-
 /* Para o `v-text-field` de pesquisa na tabela */
 .v-text-field.v-input--density-compact .v-field__input {
     color: #347899 !important;
 }
-.v-text-field.v-input--density-compact .v-field__label {
-    color: #347899 !important;
-}
-/* Aumenta a especificidade para a borda do campo de pesquisa (se for outlined também) */
-.v-text-field.v-input--density-compact .v-field__outline {
-    border-color: #347899 !important;
-}
-.v-text-field.v-input--density-compact.v-field--focused .v-field__outline::after {
-    border-color: #347899 !important;
-    border-width: 2px !important;
-}
-
-/* === Novos Estilos para a Coluna Ações === */
-
 /* 1. Centralizar o conteúdo da célula de Ações e impedir quebra de linha dos ícones */
 .actions-cell {
   display: flex; /* Habilita flexbox para alinhar os botões */
@@ -620,13 +606,13 @@
   align-items: center;
   flex-wrap: nowrap; /* **Impede a quebra de linha** (essencial para telas pequenas) */
 }
-
-/* Opcional: Centralizar o conteúdo da célula do cabeçalho de Ações */
-/* O alinhamento do cabeçalho (title) foi feito via 'align: center' na definição de `headers` */
-/* Se precisar de mais controle, este CSS pode ajudar a garantir o alinhamento */
-.custom-table th[role="columnheader"]:last-child {
-  /* O último cabeçalho geralmente é o de Ações, mas depende da ordem */
-  text-align: center !important;
+/* 🌟 Toast moderno */
+.custom-toast {
+  border-radius: 12px;
+  font-weight: 500;
+  text-align: center;
+  padding: 12px 20px;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.25);
 }
 
 </style>
