@@ -61,14 +61,24 @@
       </v-card-item>
     </v-card>
 
-    <v-snackbar
-      v-model="snackbar.show"
-      :color="snackbar.color"
-      location="top"
-      timeout="4000"
-    >
-      {{ snackbar.text }}
-    </v-snackbar>
+    <!-- 🎉 Snackbar estilizado e animado -->
+    <v-slide-y-transition>
+      <v-snackbar
+        v-model="snackbar.show"
+        class="custom-toast"
+        :color="snackbar.color"
+        elevation="8"
+        location="top center"
+        timeout="4000"
+        variant="elevated"
+      >
+        <div class="d-flex align-center">
+          <v-icon class="mr-2" :icon="snackbar.icon" />
+          <span>{{ snackbar.text }}</span>
+        </div>
+      </v-snackbar>
+    </v-slide-y-transition>
+
   </div>
 </template>
 
@@ -96,7 +106,27 @@
     show: false,
     text: '',
     color: 'success',
+    icon: 'mdi-check-circle-outline',
   })
+
+  // === Toast moderno ===
+  function exibirToast (text, type = 'info') {
+    const config = {
+      success: { color: 'success', icon: 'mdi-check-circle-outline' },
+      error: { color: 'error', icon: 'mdi-alert-circle-outline' },
+      warning: { color: 'warning', icon: 'mdi-alert-outline' },
+      info: { color: 'info', icon: 'mdi-information-outline' },
+    }
+
+    const { color, icon } = config[type] || config.info
+
+    snackbar.value = {
+      show: true,
+      text,
+      color,
+      icon,
+    }
+  }
 
   const headerColor = [52, 120, 153] // azul institucional
 
@@ -335,23 +365,23 @@
 
       autoTable(doc, {
         startY: cursorY,
-        head: [['Ocupação / Atividade', 'Situação de Trabalho']],
-        body: [[crianca.ocupacao_atividade || '', crianca.situacao_trabalho || '']],
+        head: [['Ocupação / Atividade', 'Situação de Trabalho', 'Renda Familiar']],
+        body: [[crianca.ocupacao_atividade || '', crianca.situacao_trabalho || '', crianca.renda_familiar || '']],
         headStyles: { fillColor: headerColor },
         styles: { fontSize: 9 },
         margin: { left: margin, right: margin },
       })
       cursorY = doc.lastAutoTable.finalY + 4
 
-      autoTable(doc, {
-        startY: cursorY,
-        head: [['Renda Familiar']],
-        body: [[crianca.renda_familiar || '']],
-        headStyles: { fillColor: headerColor },
-        styles: { fontSize: 9 },
-        margin: { left: margin, right: margin },
-      })
-      cursorY = doc.lastAutoTable.finalY + 4
+      // autoTable(doc, {
+      //   startY: cursorY,
+      //   head: [['Renda Familiar']],
+      //   body: [[crianca.renda_familiar || '']],
+      //   headStyles: { fillColor: headerColor },
+      //   styles: { fontSize: 9 },
+      //   margin: { left: margin, right: margin },
+      // })
+      // cursorY = doc.lastAutoTable.finalY + 4
 
       autoTable(doc, {
         startY: cursorY,
@@ -655,10 +685,6 @@
     })
   }
 
-  function exibirToast (text, color) {
-    snackbar.value = { show: true, text, color }
-  }
-
   onMounted(() => {
     carregarCriancasAdolescentes()
     carregarResponsaveis()
@@ -671,5 +697,13 @@
 }
 .v-field--density-compact .v-field__outline {
   padding-top: 10px;
+}
+/* 🌟 Toast moderno */
+.custom-toast {
+  border-radius: 12px;
+  font-weight: 500;
+  text-align: center;
+  padding: 12px 20px;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.25);
 }
 </style>
