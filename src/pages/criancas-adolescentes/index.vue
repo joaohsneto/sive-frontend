@@ -73,271 +73,547 @@
         >
           {{ editando ? 'Editar Cadastro' : 'Novo Cadastro' }}
         </v-card-title>
-
-        <v-card-text class="pa-6">
-          <v-form ref="formRef" v-model="formValido">
-            <v-row dense>
-              <v-col cols="12" md="6">
-                <v-text-field
-                  v-model="form.nome"
-                  color="#347899"
-                  density="compact"
-                  label="Nome Completo"
-                  required
-                  :rules="[v => !!v || 'Nome é obrigatório']"
-                  variant="outlined"
-                />
-              </v-col>
-
-              <v-col cols="12" md="3" sm="6">
-                <v-text-field
-                  v-model="form.cpf"
-                  color="#347899"
-                  density="compact"
-                  inputmode="numeric"
-                  label="CPF (somente números)"
-                  maxlength="11"
-                  required
-                  :rules="[
-                    v => !!v || 'CPF é obrigatório',
-                    v => (v && v.length === 11) || 'CPF deve ter 11 dígitos'
-                  ]"
-                  type="tel"
-                  variant="outlined"
-                  @input="form.cpf = form.cpf.replace(/\D/g, '')"
-                />
-              </v-col>
-
-              <v-col cols="12" md="3" sm="6">
-                <v-text-field
-                  v-model="form.email"
-                  color="#347899"
-                  density="compact"
-                  label="E-mail"
-                  required
-                  :rules="[
-                    v => !!v || 'E-mail é obrigatório',
-                    v => /.+@.+\..+/.test(v) || 'E-mail deve ser válido',
-                  ]"
-                  type="email"
-                  variant="outlined"
-                />
-              </v-col>
-
-              <v-col cols="12" md="3" sm="6">
-                <v-text-field
-                  v-model="form.idade_nascimento"
-                  color="#347899"
-                  density="compact"
-                  label="Idade / Data de Nascimento"
-                  variant="outlined"
-                />
-              </v-col>
-
-              <v-col cols="12" md="3" sm="6">
-                <v-text-field
-                  v-model="form.filiacao_pai"
-                  color="#347899"
-                  density="compact"
-                  label="Filiação Pai"
-                  variant="outlined"
-                />
-              </v-col>
-
-              <v-col cols="12" md="3" sm="6">
-                <v-text-field
-                  v-model="form.filiacao_mae"
-                  color="#347899"
-                  density="compact"
-                  label="Filiação Mãe"
-                  variant="outlined"
-                />
-              </v-col>
-
-              <v-col cols="12" md="3" sm="6">
-                <v-text-field
-                  v-model="form.com_quem_mora"
-                  color="#347899"
-                  density="compact"
-                  label="Com Quem Mora"
-                  variant="outlined"
-                />
-              </v-col>
-
-              <v-col cols="12" md="3" sm="6">
-                <v-text-field
-                  v-model="form.telefone"
-                  color="#347899"
-                  density="compact"
-                  inputmode="numeric"
-                  label="Telefone"
-                  maxlength="11"
-                  :rules="[
-                    v => !v || (v.length >= 10 && v.length <= 11) || 'Telefone deve ter entre 10 e 11 dígitos'
-                  ]"
-                  type="tel"
-                  variant="outlined"
-                  @input="form.telefone = form.telefone.replace(/\D/g, '')"
-                />
-              </v-col>
-
-              <v-col cols="12" md="6">
-                <v-text-field
-                  v-model="form.endereco"
-                  color="#347899"
-                  density="compact"
-                  label="Endereço"
-                  variant="outlined"
-                />
-              </v-col>
-
-              <v-col cols="12" md="3">
-                <v-text-field
-                  v-model="form.ponto_referencia"
-                  color="#347899"
-                  density="compact"
-                  label="Ponto de Referência"
-                  variant="outlined"
-                />
-              </v-col>
-
-              <v-col cols="12" md="3" sm="6">
-                <v-text-field
-                  v-model="form.contato"
-                  color="#347899"
-                  density="compact"
-                  label="Contato"
-                  variant="outlined"
-                />
-              </v-col>
-
-              <v-col cols="12" md="3" sm="6">
-                <v-text-field
-                  v-model="form.telefone_contato"
-                  color="#347899"
-                  density="compact"
-                  inputmode="numeric"
-                  label="Telefone Contato"
-                  maxlength="11"
-                  :rules="[
-                    v => !v || (v.length >= 10 && v.length <= 11) || 'Telefone deve ter entre 10 e 11 dígitos'
-                  ]"
-                  type="tel"
-                  variant="outlined"
-                  @input="form.telefone_contato = form.telefone_contato.replace(/\D/g, '')"
-                />
-              </v-col>
-
-              <v-col cols="12" md="3" sm="6">
-                <v-text-field
-                  v-model="form.sexo"
-                  color="#347899"
-                  density="compact"
-                  label="Sexo"
-                  variant="outlined"
-                />
-              </v-col>
-
-              <v-col cols="12" md="3" sm="6">
-                <v-text-field
-                  v-model="form.registro_civil"
-                  color="#347899"
-                  density="compact"
-                  label="Registro Civil"
-                  variant="outlined"
-                />
-              </v-col>
-
-              <v-col cols="12" md="3" sm="6">
-                <v-text-field
-                  v-model="form.comunidade_originarios"
-                  color="#347899"
-                  density="compact"
-                  label="Comunidade/Originários"
-                  variant="outlined"
-                />
-              </v-col>
-
-              <v-col cols="12" md="3" sm="6">
-                <v-text-field
-                  v-model="form.deficiencia"
-                  color="#347899"
-                  density="compact"
-                  label="Deficiência"
-                  variant="outlined"
-                />
-              </v-col>
-
-              <v-col cols="12" md="3" sm="6">
-                <v-text-field
-                  v-model="form.condicao_saude"
-                  color="#347899"
-                  density="compact"
-                  label="Condição de Saúde"
-                  variant="outlined"
-                />
-              </v-col>
-
-              <v-col cols="12" md="3" sm="6">
-                <v-text-field
-                  v-model="form.programas_sociais"
-                  color="#347899"
-                  density="compact"
-                  label="Programas Sociais"
-                  variant="outlined"
-                />
-              </v-col>
-
-              <v-col cols="12" md="3" sm="6">
-                <v-text-field
-                  v-model="form.ocupacao_atividade"
-                  color="#347899"
-                  density="compact"
-                  label="Ocupação/Atividade"
-                  variant="outlined"
-                />
-              </v-col>
-
-              <v-col cols="12" md="3" sm="6">
-                <v-text-field
-                  v-model="form.renda_familiar"
-                  color="#347899"
-                  density="compact"
-                  label="Renda Familiar"
-                  variant="outlined"
-                />
-              </v-col>
-
-              <v-col cols="12" md="3" sm="6">
-                <v-text-field
-                  v-model="form.tipo_imovel"
-                  color="#347899"
-                  density="compact"
-                  label="Tipo de Imóvel"
-                  variant="outlined"
-                />
-              </v-col>
-            </v-row>
-          </v-form>
-        </v-card-text>
-
-        <v-card-actions class="px-6 pb-6">
-          <v-spacer />
-          <v-btn
-            elevation="0"
-            :style="{ backgroundColor: '#E0E0E0', color: '#347899' }"
-            @click="fecharModal"
+        <v-tabs v-model="abaAtiva" class="px-6" color="#347899">
+          <v-tab value="monitoramento">Monitoramento</v-tab>
+          <v-tab
+            :disabled="!editando"
+            value="encaminhamento"
           >
-            Cancelar
-          </v-btn>
-          <v-btn
-            :loading="carregandoBtn"
-            :style="{ backgroundColor: '#347899', color: 'white' }"
-            @click="salvarCadastro"
-          >
-            {{ editando ? 'Atualizar' : 'Salvar' }}
-          </v-btn>
-        </v-card-actions>
+            Encaminhamento
+          </v-tab>
+        </v-tabs>
+
+        <v-divider />
+        <v-window v-model="abaAtiva">
+          <v-window-item value="monitoramento">
+            <div
+              class="pa-6"
+              style="max-height: 80vh; overflow-y: auto;"
+            >
+              <v-card-text class="pa-6">
+                <h3 class="mb-4" :style="{ color: '#347899' }">Dados da criança ou do adolescente</h3>
+                <v-form ref="formRef" v-model="formValido">
+                  <v-row dense>
+                    <v-col cols="12" md="6">
+                      <v-text-field
+                        v-model="form.nome"
+                        color="#347899"
+                        density="compact"
+                        label="Nome Completo"
+                        required
+                        :rules="[v => !!v || 'Nome é obrigatório']"
+                        variant="outlined"
+                      />
+                    </v-col>
+
+                    <v-col cols="12" md="3" sm="6">
+                      <v-text-field
+                        v-model="form.cpf"
+                        color="#347899"
+                        density="compact"
+                        inputmode="numeric"
+                        label="CPF (somente números)"
+                        maxlength="11"
+                        required
+                        :rules="[
+                          v => !!v || 'CPF é obrigatório',
+                          v => (v && v.length === 11) || 'CPF deve ter 11 dígitos'
+                        ]"
+                        type="tel"
+                        variant="outlined"
+                        @input="form.cpf = form.cpf.replace(/\D/g, '')"
+                      />
+                    </v-col>
+
+                    <v-col cols="12" md="3" sm="6">
+                      <v-text-field
+                        v-model="form.email"
+                        color="#347899"
+                        density="compact"
+                        label="E-mail"
+                        required
+                        :rules="[
+                          v => !!v || 'E-mail é obrigatório',
+                          v => /.+@.+\..+/.test(v) || 'E-mail deve ser válido',
+                        ]"
+                        type="email"
+                        variant="outlined"
+                      />
+                    </v-col>
+
+                    <v-col cols="12" md="3" sm="6">
+                      <v-text-field
+                        v-model="form.idade_nascimento"
+                        color="#347899"
+                        density="compact"
+                        label="Idade / Data de Nascimento"
+                        variant="outlined"
+                      />
+                    </v-col>
+
+                    <v-col cols="12" md="3" sm="6">
+                      <v-text-field
+                        v-model="form.filiacao_pai"
+                        color="#347899"
+                        density="compact"
+                        label="Filiação Pai"
+                        variant="outlined"
+                      />
+                    </v-col>
+
+                    <v-col cols="12" md="3" sm="6">
+                      <v-text-field
+                        v-model="form.filiacao_mae"
+                        color="#347899"
+                        density="compact"
+                        label="Filiação Mãe"
+                        variant="outlined"
+                      />
+                    </v-col>
+
+                    <v-col cols="12" md="3" sm="6">
+                      <v-text-field
+                        v-model="form.com_quem_mora"
+                        color="#347899"
+                        density="compact"
+                        label="Com Quem Mora"
+                        variant="outlined"
+                      />
+                    </v-col>
+
+                    <v-col cols="12" md="3" sm="6">
+                      <v-text-field
+                        v-model="form.telefone"
+                        color="#347899"
+                        density="compact"
+                        inputmode="numeric"
+                        label="Telefone"
+                        maxlength="11"
+                        :rules="[
+                          v => !v || (v.length >= 10 && v.length <= 11) || 'Telefone deve ter entre 10 e 11 dígitos'
+                        ]"
+                        type="tel"
+                        variant="outlined"
+                        @input="form.telefone = form.telefone.replace(/\D/g, '')"
+                      />
+                    </v-col>
+
+                    <v-col cols="12" md="6">
+                      <v-text-field
+                        v-model="form.endereco"
+                        color="#347899"
+                        density="compact"
+                        label="Endereço"
+                        variant="outlined"
+                      />
+                    </v-col>
+
+                    <v-col cols="12" md="3">
+                      <v-text-field
+                        v-model="form.ponto_referencia"
+                        color="#347899"
+                        density="compact"
+                        label="Ponto de Referência"
+                        variant="outlined"
+                      />
+                    </v-col>
+
+                    <v-col cols="12" md="3" sm="6">
+                      <v-text-field
+                        v-model="form.contato"
+                        color="#347899"
+                        density="compact"
+                        label="Contato"
+                        variant="outlined"
+                      />
+                    </v-col>
+
+                    <v-col cols="12" md="3" sm="6">
+                      <v-text-field
+                        v-model="form.telefone_contato"
+                        color="#347899"
+                        density="compact"
+                        inputmode="numeric"
+                        label="Telefone Contato"
+                        maxlength="11"
+                        :rules="[
+                          v => !v || (v.length >= 10 && v.length <= 11) || 'Telefone deve ter entre 10 e 11 dígitos'
+                        ]"
+                        type="tel"
+                        variant="outlined"
+                        @input="form.telefone_contato = form.telefone_contato.replace(/\D/g, '')"
+                      />
+                    </v-col>
+
+                    <v-col cols="12" md="3" sm="6">
+                      <v-text-field
+                        v-model="form.sexo"
+                        color="#347899"
+                        density="compact"
+                        label="Sexo"
+                        variant="outlined"
+                      />
+                    </v-col>
+
+                    <v-col cols="12" md="3" sm="6">
+                      <v-text-field
+                        v-model="form.registro_civil"
+                        color="#347899"
+                        density="compact"
+                        label="Registro Civil"
+                        variant="outlined"
+                      />
+                    </v-col>
+
+                    <v-col cols="12" md="3" sm="6">
+                      <v-text-field
+                        v-model="form.comunidade_originarios"
+                        color="#347899"
+                        density="compact"
+                        label="Comunidade/Originários"
+                        variant="outlined"
+                      />
+                    </v-col>
+
+                    <v-col cols="12" md="3" sm="6">
+                      <v-text-field
+                        v-model="form.deficiencia"
+                        color="#347899"
+                        density="compact"
+                        label="Deficiência"
+                        variant="outlined"
+                      />
+                    </v-col>
+
+                    <v-col cols="12" md="3" sm="6">
+                      <v-text-field
+                        v-model="form.condicao_saude"
+                        color="#347899"
+                        density="compact"
+                        label="Condição de Saúde"
+                        variant="outlined"
+                      />
+                    </v-col>
+
+                    <v-col cols="12" md="3" sm="6">
+                      <v-text-field
+                        v-model="form.programas_sociais"
+                        color="#347899"
+                        density="compact"
+                        label="Programas Sociais"
+                        variant="outlined"
+                      />
+                    </v-col>
+
+                    <v-col cols="12" md="3" sm="6">
+                      <v-text-field
+                        v-model="form.ocupacao_atividade"
+                        color="#347899"
+                        density="compact"
+                        label="Ocupação/Atividade"
+                        variant="outlined"
+                      />
+                    </v-col>
+
+                    <v-col cols="12" md="3" sm="6">
+                      <v-select
+                        v-model="form.renda_familiar"
+                        color="#347899"
+                        density="compact"
+                        :items="opcoesRendaFamiliar"
+                        label="Renda Familiar"
+                        variant="outlined"
+                      />
+                    </v-col>
+
+                    <v-col cols="12" md="3" sm="6">
+                      <v-select
+                        v-model="form.tipo_imovel"
+                        color="#347899"
+                        density="compact"
+                        :items="opcoesTipoImovel"
+                        label="Tipo de Imóvel"
+                        variant="outlined"
+                      />
+                    </v-col>
+
+                    <v-col cols="12" md="3" sm="6">
+                      <v-select
+                        v-model="form.situacao_trabalho"
+                        color="#347899"
+                        density="compact"
+                        :items="opcoesSituacaoTrabalho"
+                        label="Situação de Trabalho"
+                        variant="outlined"
+                      />
+                    </v-col>
+
+                  </v-row>
+
+                  <v-divider class="my-6" />
+
+                  <h3 class="mb-4" :style="{ color: '#347899' }">Informações de Monitoramento (SIVE)</h3>
+
+                  <v-row dense>
+                    <v-col cols="12">
+                      <v-select
+                        v-model="form.orgao_responsavel"
+                        color="#347899"
+                        density="compact"
+                        :items="opcoesOrgao"
+                        label="Órgão, programa, serviço ou OSC responsável"
+                        variant="outlined"
+                      />
+                    </v-col>
+
+                    <v-col
+                      v-if="form.orgao_responsavel === 'Outros(a):'"
+                      cols="12"
+                    >
+                      <v-text-field
+                        v-model="form.orgao_responsavel_outro"
+                        color="#347899"
+                        density="compact"
+                        label="Descreva Outro Órgão Responsável"
+                        required
+                        :rules="[v => !!v || 'Descrição é obrigatória']"
+                        variant="outlined"
+                      />
+                    </v-col>
+                  </v-row>
+
+                  <v-row dense>
+                    <v-col cols="12" md="4">
+                      <v-text-field
+                        v-model="form.data_encaminhamento"
+                        color="#347899"
+                        density="compact"
+                        label="Data do encaminhamento"
+                        type="date"
+                        variant="outlined"
+                      />
+                    </v-col>
+
+                    <v-col cols="12" md="8">
+                      <v-select
+                        v-model="form.motivacao_encaminhamento"
+                        color="#347899"
+                        density="compact"
+                        :items="opcoesMotivacao"
+                        label="Motivação do encaminhamento"
+                        variant="outlined"
+                      />
+                    </v-col>
+
+                    <v-col
+                      v-if="form.motivacao_encaminhamento && form.motivacao_encaminhamento.includes('Outro(a):')"
+                      cols="12"
+                    >
+                      <v-text-field
+                        v-model="form.motivacao_encaminhamento_outro"
+                        color="#347899"
+                        density="compact"
+                        label="Descreva Outra Motivação"
+                        variant="outlined"
+                      />
+                    </v-col>
+                  </v-row>
+
+                  <v-row dense>
+                    <v-col cols="12">
+                      <v-textarea
+                        v-model="form.descricao_atendimento"
+                        color="#347899"
+                        density="compact"
+                        label="Descrição do Atendimento"
+                        rows="3"
+                        variant="outlined"
+                      />
+                    </v-col>
+                  </v-row>
+
+                  <v-row dense>
+                    <v-col cols="12">
+                      <v-textarea
+                        v-model="form.relato_espontaneo"
+                        color="#347899"
+                        density="compact"
+                        label="Relato espontâneo da criança ou do adolescente, quando houver"
+                        rows="3"
+                        variant="outlined"
+                      />
+                    </v-col>
+                  </v-row>
+
+                  <v-row class="mt-4" dense>
+                    <v-col cols="12">
+                      <div class="mb-2" :style="{ color: '#347899', fontWeight: 'bold' }">8. Plano Individual de Atendimento (PIA) / Escuta Especializada</div>
+                      <v-sheet border class="pa-3" rounded="lg">
+                        <v-checkbox
+                          v-model="form.Avaliacao_individual"
+                          color="#347899"
+                          density="compact"
+                          :false-value="null"
+                          hide-details
+                          label="Avaliação diagnóstica individual"
+                          :true-value="'Avaliação diagnóstica individual'"
+                        />
+                        <v-checkbox
+                          v-model="form.Avaliacao_familiar"
+                          color="#347899"
+                          density="compact"
+                          :false-value="null"
+                          hide-details
+                          label="Avaliação diagnóstica familiar"
+                          :true-value="'Avaliação diagnóstica familiar'"
+                        />
+                        <v-checkbox
+                          v-model="form.Avaliacao_domicilio"
+                          color="#347899"
+                          density="compact"
+                          :false-value="null"
+                          hide-details
+                          label="Avaliação diagnóstica familiar com visita ao domicílio"
+                          :true-value="'Avaliação diagnóstica familiar com visita ao domicílio'"
+                        />
+                        <v-checkbox
+                          v-model="form.Escuta_especializada"
+                          color="#347899"
+                          density="compact"
+                          :false-value="null"
+                          hide-details
+                          label="Escuta Especializada"
+                          :true-value="'Escuta Especializada'"
+                        />
+                        <v-checkbox
+                          v-model="form.Organ_cuidado_individual"
+                          color="#347899"
+                          density="compact"
+                          :false-value="null"
+                          hide-details
+                          label="Organização das abordagens de cuidado e ou atividades para a criança e ou adolescente"
+                          :true-value="'Organização das abordagens de cuidado e ou atividades para a criança e ou adolescente'"
+                        />
+                        <v-checkbox
+                          v-model="form.Organ_cuidado_conjunto"
+                          color="#347899"
+                          density="compact"
+                          :false-value="null"
+                          hide-details
+                          label="Organização das abordagens de cuidado e ou atividades de que juntos participam a criança e ou adolescente e membros da família"
+                          :true-value="'Organização das abordagens de cuidado e ou atividades de que juntos participam a criança e ou adolescente e membros da família'"
+                        />
+                        <v-checkbox
+                          v-model="form.Organ_cuidado_familia"
+                          color="#347899"
+                          density="compact"
+                          :false-value="null"
+                          hide-details
+                          label="Organização abordagens de cuidado e ou atividades para membros da família"
+                          :true-value="'Organização abordagens de cuidado e ou atividades para membros da família'"
+                        />
+                      </v-sheet>
+                    </v-col>
+                  </v-row>
+
+                  <v-divider class="my-6" />
+
+                  <v-row dense>
+                    <v-col cols="12" md="6">
+                      <v-text-field
+                        v-model="form.agente_violador"
+                        color="#347899"
+                        density="compact"
+                        label="Agente Violador (Própria Criança/Adolescente, Estado, Família, Sociedade)"
+                        variant="outlined"
+                      />
+                    </v-col>
+
+                    <v-col cols="12" md="6">
+                      <v-select
+                        v-model="form.status"
+                        color="#347899"
+                        density="compact"
+                        :items="opcoesStatus"
+                        label="Status"
+                        variant="outlined"
+                      />
+                    </v-col>
+
+                    <v-col cols="12" md="6">
+                      <v-select
+                        v-model="form.tipo_acompanhamento"
+                        color="#347899"
+                        density="compact"
+                        :items="opcoesTipoAcompanhamento"
+                        label="Tipo de Acompanhamento"
+                        variant="outlined"
+                      />
+                    </v-col>
+
+                    <v-col cols="12" md="6">
+                      <v-select
+                        v-model="form.periodo_acompanhamento"
+                        color="#347899"
+                        density="compact"
+                        :items="opcoesPeriodoAcompanhamento"
+                        label="Período do Acompanhamento"
+                        variant="outlined"
+                      />
+                    </v-col>
+
+                    <v-col cols="12">
+                      <v-select
+                        v-model="form.motivo_encerramento"
+                        color="#347899"
+                        density="compact"
+                        :items="opcoesMotivoEncerramento"
+                        label="Motivo do encerramento do atendimento/acompanhamento"
+                        variant="outlined"
+                      />
+                    </v-col>
+                    <v-col
+                      v-if="form.motivo_encerramento === 'Outro(a):'"
+                      cols="12"
+                    >
+                      <v-text-field
+                        v-model="form.motivo_encerramento_outro"
+                        color="#347899"
+                        density="compact"
+                        label="Outros Motivos do Encerramento"
+                        variant="outlined"
+                      />
+                    </v-col>
+                  </v-row>
+                </v-form>
+              </v-card-text>
+
+              <v-card-actions class="px-6 pb-6">
+                <v-spacer />
+                <v-btn
+                  elevation="0"
+                  :style="{ backgroundColor: '#E0E0E0', color: '#347899' }"
+                  @click="fecharModal"
+                >
+                  Cancelar
+                </v-btn>
+                <v-btn
+                  :loading="carregandoBtn"
+                  :style="{ backgroundColor: '#347899', color: 'white' }"
+                  @click="salvarCadastro"
+                >
+                  {{ editando ? 'Atualizar' : 'Salvar' }}
+                </v-btn>
+              </v-card-actions>
+            </div>
+          </v-window-item>
+
+          <v-window-item value="encaminhamento">
+            <v-card-text class="pa-6">
+              <Encaminhamento :criancas-adolescentes-id="form.criancas_adolescentes_id" @fechar-modal-principal="fecharModal" />
+            </v-card-text>
+          </v-window-item>
+        </v-window>
       </v-card>
     </v-dialog>
 
@@ -375,7 +651,6 @@
       </v-card>
     </v-dialog>
 
-    <!-- 🎉 Snackbar estilizado e animado -->
     <v-slide-y-transition>
       <v-snackbar
         v-model="snackbar.show"
@@ -398,6 +673,7 @@
 
 <script setup>
   import { computed, onMounted, ref } from 'vue'
+  import Encaminhamento from '@/components/cadastros/Encaminhamento.vue'
   // Presume que o caminho do serviço de API é o mesmo do exemplo
   import api from '@/services/api'
 
@@ -412,6 +688,7 @@
   const formRef = ref(null)
   const selecionado = ref(null) // Para guardar o item selecionado na exclusão/edição
   const filtro = ref('')
+  const abaAtiva = ref('monitoramento') // aba inici
 
   const snackbar = ref({
     show: false,
@@ -439,7 +716,107 @@
     }
   }
 
-  // Estrutura do formulário (baseado nos campos de POST)
+  // === Listas de Opções ===
+  const opcoesOrgao = ref([
+    'Escola',
+    'Conselho Tutelar',
+    'Medida protetiva determinada pelo Poder Judiciário',
+    'Medida socioeducativa determinada pelo Poder Judiciário',
+    'Encaminhamento do Ministério Público',
+    'Encaminhamento da Assistência social (CREAS)',
+    'Encaminhamento da Assistência social (CRAS)',
+    'Encaminhamento do Serviço Especializado de Abordagem Social',
+    'Encaminhamento da Saúde',
+    'Procura direta da família pelo serviço (demanda espontânea)',
+    'Procura direta da criança e ou adolescente pelo serviço (demanda espontânea)',
+    'Busca ativa do próprio programa',
+    'Busca ativa do próprio programa com mediação da REDE',
+    'Outros(a):',
+  ]) // Baseado no Item 1
+
+  const opcoesRendaFamiliar = ref([
+    '0-1 salário mínimo',
+    '2-3 salários mínimos',
+    '3-5 salários mínimos',
+    'Mias que 5 salários mínimos',
+    'Não sabe informar',
+  ]) // Baseado no Item 11
+
+  const opcoesTipoImovel = ref([
+    'Próprio',
+    'Alugado',
+    'Cedido',
+  ]) // Baseado no Item 13
+
+  // NOVO: Situação de Trabalho
+  const opcoesSituacaoTrabalho = ref([
+    'Com Carteira de Trabalho',
+    'Sem Carteira de Trabalho',
+    'Não se aplica',
+  ])
+
+  const opcoesStatus = ref([
+    'Pendente',
+    'Improcedente',
+    'Fora do perfil/atribuições da Justiça ou Segurança Pública',
+  ]) // Baseado no Item 11
+
+  const opcoesTipoAcompanhamento = ref([
+    'Audiência',
+    'Relatório Escrito',
+    'Relatório Telefônico',
+  ]) // Baseado no Item 12
+
+  const opcoesPeriodoAcompanhamento = ref([
+    'Diária',
+    'Semanal',
+    'Quinzenal',
+    'Mensal',
+  ]) // Baseado no Item 13
+
+  // Motivação do encaminhamento (Item 5)
+  const opcoesMotivacao = ref([
+    'Abandono familiar/rompimento de vínculos',
+    'Abandono familiar/vínculos',
+    'Adolescente autor de ato infracional',
+    'Álcool e outras drogas',
+    'Colocação familiar/Acolhimento institucional',
+    'Elevado número de faltas injustificadas',
+    'Evasão escolar',
+    'Evasão ou impedimento de atendimento em serviço de saúde',
+    'Gravidez precoce',
+    'Insegurança alimentar',
+    'Maus-tratos (abuso do poder familiar/negligência/omissões)',
+    'Omissão/negligência',
+    'Pessoas com deficiência',
+    'Situação de rua',
+    'Violência financeira',
+    'Violência física',
+    'Violência institucional',
+    'Violência psicológica',
+    'Violência sexual',
+    'Violência sexual: exploração sexual comercial de crianças ou adolescentes',
+    'Trabalho Infantil',
+    'Violência doméstica/familiar',
+    'Outro(a):', // Opção para descrever outro
+  ]) // Baseado no Item 15
+
+  // Motivo do encerramento (Item 14)
+  const opcoesMotivoEncerramento = ref([
+    'Fim da(s) situação(s) de abandono familiar',
+    'Cumprimento de MSE pela política de Assistência Social',
+    'Inclusão em tratamentos de saúde e alta médica',
+    'Inclusão em Programa de Familiar Acolhedora/Acolhimento institucional',
+    'Regulação das faltas / normalidade da presença',
+    'Retorno a escola',
+    'Fim de ciclos de violência',
+    'Fim de ciclos de omissão/negligência',
+    'Saída da condição de situação de rua',
+    'Fim de ciclos de Trabalho Infantil',
+    'Outro(a):', // Opção para descrever outro
+  ])
+
+  // Estrutura do formulário (baseado nos campos de POST e nos novos itens SIVE)
   const formModelo = {
     criancas_adolescentes_id: null,
     cpf: '',
@@ -461,8 +838,44 @@
     condicao_saude: '',
     programas_sociais: '',
     ocupacao_atividade: '',
+    // Campos agora como Select
     renda_familiar: '',
     tipo_imovel: '',
+    situacao_trabalho: '', // NOVO CAMPO ADICIONADO
+    // === Campos SIVE ===
+    // Item 1: Órgão, programa, serviço ou OSC responsável
+    orgao_responsavel: '',
+    // NOVO CAMPO para 'Outros(a):'
+    orgao_responsavel_outro: '', // Adicionado
+    // Item 2: Data do encaminhamento
+    data_encaminhamento: '',
+    // Item 5: Motivação do encaminhamento (Select)
+    motivacao_encaminhamento: '',
+    motivacao_encaminhamento_outro: '',
+    // Item 6: Descrição do atendimento
+    descricao_atendimento: '',
+    // Item 7: Relato espontâneo
+    relato_espontaneo: '',
+    // Item 8: Plano Individual de Atendimento (PIA) / Escuta Especializada (Checkboxes Individuais)
+    // ALTERADO: De 0 para null
+    Avaliacao_individual: null,
+    Avaliacao_familiar: null,
+    Avaliacao_domicilio: null,
+    Escuta_especializada: null,
+    Organ_cuidado_individual: null,
+    Organ_cuidado_conjunto: null,
+    Organ_cuidado_familia: null,
+    // Item 10: Agente Violador
+    agente_violador: '',
+    // Item 11: Status
+    status: '',
+    // Item 12: Acompanhamento (Tipo)
+    tipo_acompanhamento: '',
+    // Item 13: Acompanhamento (Período)
+    periodo_acompanhamento: '',
+    // Item 14: Motivo do encerramento
+    motivo_encerramento: '',
+    motivo_encerramento_outro: '', // NOVO CAMPO PARA O "OUTRO:"
   }
 
   const form = ref({ ...formModelo })
@@ -499,6 +912,7 @@
       carregando.value = true
       const { data } = await api.get(endpoint)
       criancasAdolescentes.value = data
+      // Converte valores de 1/0 (string ou number) para booleanos no formulário ao carregar (se necessário, dependendo do retorno da API)
     } catch (error) {
       exibirToast(error.response?.data?.message || 'Erro ao carregar cadastros', 'error')
     } finally {
@@ -509,14 +923,29 @@
   function abrirModalNovo () {
     limparForm()
     editando.value = false
+    abaAtiva.value = 'monitoramento' // Garante que volta para a primeira aba
     modalAberto.value = true
   }
 
   function abrirModalEditar (item) {
     // Copia o item para o formulário
     form.value = { ...item }
+
+    // ALTERADO: Converte valores 1/0 (ou true/false) para a string da label ou null
+    const isTrue = val => val === 1 || val === true || val === '1' || (typeof val === 'string' && val.length > 0)
+
+    form.value.Avaliacao_individual = isTrue(item.Avaliacao_individual) ? 'Avaliação diagnóstica individual' : null
+    form.value.Avaliacao_familiar = isTrue(item.Avaliacao_familiar) ? 'Avaliação diagnóstica familiar' : null
+    form.value.Avaliacao_domicilio = isTrue(item.Avaliacao_domicilio) ? 'Avaliação diagnóstica familiar com visita ao domicílio' : null
+    form.value.Escuta_especializada = isTrue(item.Escuta_especializada) ? 'Escuta Especializada' : null
+    form.value.Organ_cuidado_individual = isTrue(item.Organ_cuidado_individual) ? 'Organização das abordagens de cuidado e ou atividades para a criança e ou adolescente' : null
+    form.value.Organ_cuidado_conjunto = isTrue(item.Organ_cuidado_conjunto) ? 'Organização das abordagens de cuidado e ou atividades de que juntos participam a criança e ou adolescente e membros da família' : null
+    form.value.Organ_cuidado_familia = isTrue(item.Organ_cuidado_familia) ? 'Organização abordagens de cuidado e ou atividades para membros da família' : null
+    // FIM DA ALTERAÇÃO
+
     editando.value = true
     modalAberto.value = true
+    abaAtiva.value = 'monitoramento' // Inicia na primeira aba, mesmo em edição
   }
 
   function fecharModal () {
@@ -530,20 +959,43 @@
   }
 
   async function salvarCadastro () {
-    // A validação do formulário deve ser suficiente agora.
+    // Se a aba Encaminhamento estiver ativa, volte para Monitoramento para validar o formulário principal
+    if (abaAtiva.value === 'encaminhamento') {
+      abaAtiva.value = 'monitoramento'
+      // Pequeno delay para a v-form ser re-renderizada na nova aba
+      await new Promise(resolve => setTimeout(resolve, 50))
+    }
+
     if (!formRef.value?.validate()) return
     carregandoBtn.value = true
     const endpointBase = '/cadastros/criancas-adolescentes'
 
     try {
+      const body = {
+        ...form.value,
+      }
+
+      // LÓGICA: Remove o campo orgao_responsavel_outro se 'Outros(a):' não estiver selecionado
+      if (body.orgao_responsavel !== 'Outros(a):') {
+        delete body.orgao_responsavel_outro
+      }
+
+      // Adicionalmente, ajusta os outros campos de 'outro' se não estiverem selecionados (boa prática)
+      if (body.motivacao_encaminhamento !== 'Outro(a):') {
+        delete body.motivacao_encaminhamento_outro
+      }
+
+      if (body.motivo_encerramento !== 'Outro(a):') {
+        delete body.motivo_encerramento_outro
+      }
+
       if (editando.value) {
         // Rota PUT: /update?criancas_adolescentes_id=ID
-        await api.put(`${endpointBase}/update?criancas_adolescentes_id=${form.value.criancas_adolescentes_id}`, form.value)
+        await api.put(`${endpointBase}/update?criancas_adolescentes_id=${form.value.criancas_adolescentes_id}`, body)
         exibirToast('Cadastro atualizado com sucesso!', 'success')
       } else {
         // Rota POST: /
-        // Desestrutura para garantir que apenas os campos do body POST sejam enviados
-        const { criancas_adolescentes_id, ...bodyNew } = form.value
+        const { criancas_adolescentes_id, ...bodyNew } = body
         await api.post(endpointBase, bodyNew)
         exibirToast('Cadastro realizado com sucesso!', 'success')
       }
@@ -615,4 +1067,14 @@
   box-shadow: 0 4px 14px rgba(0, 0, 0, 0.25);
 }
 
+.scrollable::-webkit-scrollbar {
+  width: 8px;
+}
+.scrollable::-webkit-scrollbar-thumb {
+  background-color: #cfd8dc;
+  border-radius: 4px;
+}
+.scrollable::-webkit-scrollbar-thumb:hover {
+  background-color: #b0bec5;
+}
 </style>
