@@ -16,8 +16,8 @@
         </div>
       </v-col>
 
-      <v-col class="right-panel d-flex align-center justify-center" cols="12" md="6">
-        <v-card class="login-card pa-8" elevation="4">
+      <v-col class="right-panel px-3 d-flex align-center justify-center" cols="12" md="6">
+        <v-card class="login-card pa-4" elevation="4">
           <h3 class="mb-6 text-center font-weight-medium" :style="{ color: '#347899' }">
             Acesso ao Sistema
           </h3>

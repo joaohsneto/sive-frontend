@@ -1,7 +1,7 @@
 <template>
-  <div class="pa-4">
-    <v-card class="pa-10" elevation="2">
-      <v-row class="d-flex justify-space-between align-center mb-4">
+  <div class="pa-2">
+    <v-card class="pa-4" elevation="2">
+      <v-row class="d-flex pa-2 justify-space-between align-center mb-4">
         <h2 :style="{ color: '#347899' }">Gerenciar Crianças e Adolescentes</h2>
         <v-btn
           class="text-none"
@@ -13,7 +13,7 @@
         </v-btn>
       </v-row>
 
-      <v-card-item>
+      <v-card-item class="pa-0">
         <v-data-table
           class="custom-table"
           :header-props="{ class: 'header-color' }"
@@ -62,6 +62,16 @@
             </div>
           </template>
         </v-data-table>
+        <v-row class="d-flex pa-2 justify-end align-center mt-2 mb-1 ml-auto mr-auto">
+          <v-btn
+            class="text-none w-100 w-md-auto"
+            prepend-icon="mdi-file-pdf-box"
+            :style="{ backgroundColor: '#E57373', color: 'white' }"
+            to="/ficha-sive"
+          >
+            Gerar Fichar
+          </v-btn>
+        </v-row>
       </v-card-item>
     </v-card>
 
@@ -87,10 +97,10 @@
         <v-window v-model="abaAtiva">
           <v-window-item value="monitoramento">
             <div
-              class="pa-6"
-              style="max-height: 80vh; overflow-y: auto;"
+              class="pa-4"
+              style="max-height: 70vh; overflow-y: auto;"
             >
-              <v-card-text class="pa-6">
+              <v-card-text class="pa-0">
                 <h3 class="mb-4" :style="{ color: '#347899' }">Dados da criança ou do adolescente</h3>
                 <v-form ref="formRef" v-model="formValido">
                   <v-row dense>
@@ -246,20 +256,22 @@
                     </v-col>
 
                     <v-col cols="12" md="3" sm="6">
-                      <v-text-field
+                      <v-select
                         v-model="form.sexo"
                         color="#347899"
                         density="compact"
+                        :items="opcoesSexo"
                         label="Sexo"
                         variant="outlined"
                       />
                     </v-col>
 
                     <v-col cols="12" md="3" sm="6">
-                      <v-text-field
+                      <v-select
                         v-model="form.registro_civil"
                         color="#347899"
                         density="compact"
+                        :items="opcoesRegistroCivil"
                         label="Registro Civil"
                         variant="outlined"
                       />
@@ -276,10 +288,11 @@
                     </v-col>
 
                     <v-col cols="12" md="3" sm="6">
-                      <v-text-field
+                      <v-select
                         v-model="form.deficiencia"
                         color="#347899"
                         density="compact"
+                        :items="opcoesDeficiencia"
                         label="Deficiência"
                         variant="outlined"
                       />
@@ -296,21 +309,12 @@
                     </v-col>
 
                     <v-col cols="12" md="3" sm="6">
-                      <v-text-field
+                      <v-select
                         v-model="form.programas_sociais"
                         color="#347899"
                         density="compact"
+                        :items="opcoesProgramasSociais"
                         label="Programas Sociais"
-                        variant="outlined"
-                      />
-                    </v-col>
-
-                    <v-col cols="12" md="3" sm="6">
-                      <v-text-field
-                        v-model="form.ocupacao_atividade"
-                        color="#347899"
-                        density="compact"
-                        label="Ocupação/Atividade"
                         variant="outlined"
                       />
                     </v-col>
@@ -344,6 +348,16 @@
                         density="compact"
                         :items="opcoesSituacaoTrabalho"
                         label="Situação de Trabalho"
+                        variant="outlined"
+                      />
+                    </v-col>
+
+                    <v-col cols="12" md="3" sm="6">
+                      <v-text-field
+                        v-model="form.ocupacao_atividade"
+                        color="#347899"
+                        density="compact"
+                        label="Ocupação/Atividade"
                         variant="outlined"
                       />
                     </v-col>
@@ -384,13 +398,24 @@
 
                   <v-row dense>
                     <v-col cols="12" md="4">
-                      <v-text-field
+                      <v-date-input
                         v-model="form.data_encaminhamento"
                         color="#347899"
                         density="compact"
+                        format="dd/MM/yyyy"
                         label="Data do encaminhamento"
-                        type="date"
+                        maxlength="10"
+                        prepend-icon=""
+                        prepend-inner-icon="mdi-calendar"
+
                         variant="outlined"
+
+                        @keypress="event => {
+                          if (event.key.length > 1) return;
+                          if (!/[0-9/]/.test(event.key)) {
+                            event.preventDefault();
+                          }
+                        }"
                       />
                     </v-col>
 
@@ -406,7 +431,7 @@
                     </v-col>
 
                     <v-col
-                      v-if="form.motivacao_encaminhamento && form.motivacao_encaminhamento.includes('Outro(a):')"
+                      v-if="form.motivacao_encaminhamento === 'Outro(a):'"
                       cols="12"
                     >
                       <v-text-field
@@ -519,12 +544,23 @@
                   <v-divider class="my-6" />
 
                   <v-row dense>
-                    <v-col cols="12" md="6">
+                    <!-- <v-col cols="12" md="6">
                       <v-text-field
                         v-model="form.agente_violador"
                         color="#347899"
                         density="compact"
                         label="Agente Violador (Própria Criança/Adolescente, Estado, Família, Sociedade)"
+                        variant="outlined"
+                      />
+                    </v-col> -->
+
+                    <v-col cols="12" md="6">
+                      <v-select
+                        v-model="form.agente_violador"
+                        color="#347899"
+                        density="compact"
+                        :items="opcoesAgenteViolador"
+                        label="Agente Violador"
                         variant="outlined"
                       />
                     </v-col>
@@ -672,7 +708,7 @@
 </template>
 
 <script setup>
-  import { computed, onMounted, ref } from 'vue'
+  import { computed, onMounted, ref, watch } from 'vue'
   import Encaminhamento from '@/components/cadastros/Encaminhamento.vue'
   // Presume que o caminho do serviço de API é o mesmo do exemplo
   import api from '@/services/api'
@@ -689,6 +725,78 @@
   const selecionado = ref(null) // Para guardar o item selecionado na exclusão/edição
   const filtro = ref('')
   const abaAtiva = ref('monitoramento') // aba inici
+
+  const formModelo = {
+    // ... (restante do formModelo aqui para referência)
+    criancas_adolescentes_id: null,
+    cpf: '',
+    email: '',
+    nome: '',
+    filiacao_pai: '',
+    filiacao_mae: '',
+    idade_nascimento: '',
+    com_quem_mora: '',
+    endereco: '',
+    ponto_referencia: '',
+    telefone: '',
+    contato: '',
+    telefone_contato: '',
+    registro_civil: '',
+    sexo: '',
+    comunidade_originarios: '',
+    deficiencia: '',
+    condicao_saude: '',
+    programas_sociais: '',
+    ocupacao_atividade: '',
+    renda_familiar: '',
+    tipo_imovel: '',
+    situacao_trabalho: '',
+    orgao_responsavel: '',
+    orgao_responsavel_outro: '',
+    data_encaminhamento: '',
+    motivacao_encaminhamento: '',
+    motivacao_encaminhamento_outro: '',
+    descricao_atendimento: '',
+    relato_espontaneo: '',
+    Avaliacao_individual: null,
+    Avaliacao_familiar: null,
+    Avaliacao_domicilio: null,
+    Escuta_especializada: null,
+    Organ_cuidado_individual: null,
+    Organ_cuidado_conjunto: null,
+    Organ_cuidado_familia: null,
+    agente_violador: '',
+    status: '',
+    tipo_acompanhamento: '',
+    periodo_acompanhamento: '',
+    motivo_encerramento: '',
+    motivo_encerramento_outro: '',
+  }
+
+  const form = ref({ ...formModelo })
+
+  // === Watchers para limpar campos 'Outro(a)' no FORM local ===
+  // 1. Órgão responsável
+  watch(() => form.value.orgao_responsavel, newValue => {
+    if (newValue !== 'Outros(a):') {
+      form.value.orgao_responsavel_outro = null
+    }
+  })
+
+  // 2. Motivação do encaminhamento
+  watch(() => form.value.motivacao_encaminhamento, newValue => {
+    if (newValue !== 'Outro(a):') {
+      form.value.motivacao_encaminhamento_outro = null
+    }
+  })
+
+  // 3. Motivo do encerramento
+  watch(() => form.value.motivo_encerramento, newValue => {
+    if (newValue !== 'Outro(a):') {
+      form.value.motivo_encerramento_outro = null
+    }
+  })
+  // =======================================================
 
   const snackbar = ref({
     show: false,
@@ -752,14 +860,56 @@
   const opcoesSituacaoTrabalho = ref([
     'Com Carteira de Trabalho',
     'Sem Carteira de Trabalho',
+    'Sem Ocupação ou Atividade',
     'Não se aplica',
   ])
 
+  const opcoesSexo = ref([
+    'Masculino',
+    'Feminino',
+    'Outro',
+  ]) // Adicionado para o campo Sexo
+
+  const opcoesRegistroCivil = ref([
+    'SIM',
+    'NÃO',
+  ]) // Adicionado para o campo Registro Civil
+
+  const opcoesDeficiencia = ref([
+    'Nenhuma',
+    'Física',
+    'Mental',
+    'Intelectual',
+    'Múltipla',
+    'Outra',
+  ]) // Adicionado para o campo Deficiência
+
+  const opcoesProgramasSociais = ref([
+    'Auxílio Gás dos Brasileiros',
+    'Benefício de Prestação Continuada (BPC)',
+    'Bolsa Família',
+    'Cadastro Único (CadÚnico)',
+    'Farmácia Popular',
+    'Minha Casa, Minha Vida',
+    'Pé-de-Meia',
+    'Seguro Defeso (Pescador Artesanal)',
+    'Tarifa Social de Energia Elétrica (TSEE)',
+    'Outro(a):',
+  ]) // Adicionado para o campo Programas Sociais
+
   const opcoesStatus = ref([
+    'Procedente',
     'Pendente',
     'Improcedente',
     'Fora do perfil/atribuições da Justiça ou Segurança Pública',
   ]) // Baseado no Item 11
+
+  const opcoesAgenteViolador = ref([
+    'Própria Criança/Adolescente',
+    'Estado',
+    'Família',
+    'Sociedade',
+  ]) // Baseado no Item 10
 
   const opcoesTipoAcompanhamento = ref([
     'Audiência',
@@ -815,70 +965,6 @@
     'Fim de ciclos de Trabalho Infantil',
     'Outro(a):', // Opção para descrever outro
   ])
-
-  // Estrutura do formulário (baseado nos campos de POST e nos novos itens SIVE)
-  const formModelo = {
-    criancas_adolescentes_id: null,
-    cpf: '',
-    email: '',
-    nome: '',
-    filiacao_pai: '',
-    filiacao_mae: '',
-    idade_nascimento: '',
-    com_quem_mora: '',
-    endereco: '',
-    ponto_referencia: '',
-    telefone: '',
-    contato: '',
-    telefone_contato: '',
-    registro_civil: '',
-    sexo: '',
-    comunidade_originarios: '',
-    deficiencia: '',
-    condicao_saude: '',
-    programas_sociais: '',
-    ocupacao_atividade: '',
-    // Campos agora como Select
-    renda_familiar: '',
-    tipo_imovel: '',
-    situacao_trabalho: '', // NOVO CAMPO ADICIONADO
-    // === Campos SIVE ===
-    // Item 1: Órgão, programa, serviço ou OSC responsável
-    orgao_responsavel: '',
-    // NOVO CAMPO para 'Outros(a):'
-    orgao_responsavel_outro: '', // Adicionado
-    // Item 2: Data do encaminhamento
-    data_encaminhamento: '',
-    // Item 5: Motivação do encaminhamento (Select)
-    motivacao_encaminhamento: '',
-    motivacao_encaminhamento_outro: '',
-    // Item 6: Descrição do atendimento
-    descricao_atendimento: '',
-    // Item 7: Relato espontâneo
-    relato_espontaneo: '',
-    // Item 8: Plano Individual de Atendimento (PIA) / Escuta Especializada (Checkboxes Individuais)
-    // ALTERADO: De 0 para null
-    Avaliacao_individual: null,
-    Avaliacao_familiar: null,
-    Avaliacao_domicilio: null,
-    Escuta_especializada: null,
-    Organ_cuidado_individual: null,
-    Organ_cuidado_conjunto: null,
-    Organ_cuidado_familia: null,
-    // Item 10: Agente Violador
-    agente_violador: '',
-    // Item 11: Status
-    status: '',
-    // Item 12: Acompanhamento (Tipo)
-    tipo_acompanhamento: '',
-    // Item 13: Acompanhamento (Período)
-    periodo_acompanhamento: '',
-    // Item 14: Motivo do encerramento
-    motivo_encerramento: '',
-    motivo_encerramento_outro: '', // NOVO CAMPO PARA O "OUTRO:"
-  }
-
-  const form = ref({ ...formModelo })
 
   // Definição dos Headers da Tabela
   const headers = [
@@ -971,23 +1057,45 @@
     const endpointBase = '/cadastros/criancas-adolescentes'
 
     try {
+      // Cria uma cópia limpa do formulário
       const body = {
         ...form.value,
       }
 
-      // LÓGICA: Remove o campo orgao_responsavel_outro se 'Outros(a):' não estiver selecionado
+      // 1. Órgão responsável
+      if (body.orgao_responsavel !== 'Outros(a):' && 'orgao_responsavel_outro' in body) {
+        body.orgao_responsavel_outro = null
+        // Se a API aceita 'null', a linha acima é suficiente. Se preferir não enviar a chave:
+        // delete body.orgao_responsavel_outro;
+      }
+
+      // 2. Motivação do encaminhamento
+      if (body.motivacao_encaminhamento !== 'Outro(a):' && 'motivacao_encaminhamento_outro' in body) {
+        body.motivacao_encaminhamento_outro = null
+        // delete body.motivacao_encaminhamento_outro;
+      }
+
+      // 3. Motivo do encerramento
+      if (body.motivo_encerramento !== 'Outro(a):' && 'motivo_encerramento_outro' in body) {
+        body.motivo_encerramento_outro = null
+        // delete body.motivo_encerramento_outro;
+      }
+
+      // 1. Órgão responsável
       if (body.orgao_responsavel !== 'Outros(a):') {
-        delete body.orgao_responsavel_outro
+        body.orgao_responsavel_outro = null
       }
 
-      // Adicionalmente, ajusta os outros campos de 'outro' se não estiverem selecionados (boa prática)
+      // 2. Motivação do encaminhamento
       if (body.motivacao_encaminhamento !== 'Outro(a):') {
-        delete body.motivacao_encaminhamento_outro
+        body.motivacao_encaminhamento_outro = null
       }
 
+      // 3. Motivo do encerramento
       if (body.motivo_encerramento !== 'Outro(a):') {
-        delete body.motivo_encerramento_outro
+        body.motivo_encerramento_outro = null
       }
+      // FIM DA CORREÇÃO DE PAYLOAD
 
       if (editando.value) {
         // Rota PUT: /update?criancas_adolescentes_id=ID

@@ -1,9 +1,30 @@
 <template>
-  <div class="pa-4">
-    <v-card class="pa-4" elevation="0">
-      <v-card-item>
+  <div class="pa-0">
+    <v-card class="pa-0" elevation="0">
+      <v-card-item class="pa-0">
+        <v-row class="d-flex mt-1 justify-space-between align-center">
+          <v-col cols="12" md="3" sm="4">
+            <v-text-field
+              v-model="filtro"
+              clearable
+              color="#347899"
+              density="compact"
+              label="Pesquisar..."
+              prepend-inner-icon="mdi-magnify"
+              variant="outlined"
+            />
+          </v-col>
+          <v-btn
+            class="text-none ml-3 mr-3 mb-6"
+            prepend-icon="mdi-plus"
+            :style="{ backgroundColor: '#347899', color: 'white' }"
+            @click="abrirModalNovo"
+          >
+            Novo Encaminhamento
+          </v-btn>
+        </v-row>
         <v-data-table
-          class="custom-table"
+          class="custom-table mt-6"
           :header-props="{ class: 'header-color' }"
           :headers="headers"
           :items="encaminhamentosFiltrados"
@@ -11,29 +32,6 @@
           loading-text="Carregando encaminhamentos..."
           no-data-text="Nenhum encaminhamento registrado para esta criança/adolescente."
         >
-          <template #top>
-            <v-row class="d-flex justify-space-between align-center">
-              <v-col cols="12" md="3" sm="4">
-                <v-text-field
-                  v-model="filtro"
-                  clearable
-                  color="#347899"
-                  density="compact"
-                  label="Pesquisar..."
-                  prepend-inner-icon="mdi-magnify"
-                  variant="outlined"
-                />
-              </v-col>
-              <v-btn
-                class="text-none ml-3 mr-3 mb-6"
-                prepend-icon="mdi-plus"
-                :style="{ backgroundColor: '#347899', color: 'white' }"
-                @click="abrirModalNovo"
-              >
-                Novo Encaminhamento
-              </v-btn>
-            </v-row>
-          </template>
 
           <template #loading>
             <v-sheet class="pa-3 text-center">
@@ -42,13 +40,10 @@
             </v-sheet>
           </template>
 
-          <!-- NOVO BLOCO: Renderiza o Tipo do Encaminhamento com a descrição extra -->
           <template #item.tipo_encaminhamento="{ item }">
             <div class="d-flex flex-column">
-              <!-- Exibe o tipo principal -->
               <span>{{ item.tipo_encaminhamento }}</span>
 
-              <!-- Se o tipo for 'Outro(a):' E o campo extra tiver conteúdo, exibe-o abaixo em cinza -->
               <span
                 v-if="item.tipo_encaminhamento === 'Outro(a):' && item.tipo_encaminhamento_outro"
                 class="text-caption text-medium-emphasis"
@@ -478,6 +473,14 @@
       carregandoBtn.value = false
     }
   }
+
+  // === Adição de Watcher para limpar campo 'Outro(a)' (NOVO) ===
+  watch(() => form.value.tipo_encaminhamento, newValue => {
+    if (newValue !== 'Outro(a):') {
+      form.value.tipo_encaminhamento_outro = null
+    }
+  })
+  // =======================================================
 
   // === LIFECYCLE E WATCHERS ===
 

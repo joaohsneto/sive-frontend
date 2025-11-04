@@ -3,9 +3,9 @@
     <v-img
       alt="Logo Central"
       class="watermark-logo position-absolute text-disabled"
-      :max-width="800"
+      :max-width="500"
       src="/logo.svg"
-      :width="500"
+      width="100%"
     />
   </div>
 </template>

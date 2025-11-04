@@ -22,7 +22,7 @@
     <div class="text-center pa-4">
       <v-img
         alt="Logo"
-        class="mx-auto mb-2"
+        class="logo mx-auto mb-2"
         cover
         max-width="90"
         src="@/assets/logo.svg"
@@ -75,7 +75,7 @@
           prepend-icon="mdi-account-group"
           to="/responsaveis"
         >
-          <v-list-item-title class="text-white list-title">Responsáveis</v-list-item-title>
+          <v-list-item-title class="text-white list-title">Responsável Pelo Preenchimento</v-list-item-title>
         </v-list-item>
       </v-list-group>
 
@@ -145,6 +145,12 @@
 .text-white { color: #ecf0f1 !important; }
 
 /* 🔹 Botão hamburguer fixo e discreto no canto */
+.logo {
+  height: auto;
+  border-radius: 50%;
+  margin-bottom: 20px;
+  box-shadow: 0 0 0 6px rgba(255, 255, 255, 0.1);
+}
 .hamburger-btn {
   position: fixed;
   top: 12px;
