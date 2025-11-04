@@ -1,7 +1,7 @@
 <template>
-  <div class="pa-4">
-    <v-card class="pa-10" elevation="2">
-      <v-row class="d-flex justify-space-between align-center mb-4">
+  <div class="pa-2">
+    <v-card class="pa-4" elevation="2">
+      <v-row class="d-flex pa-2 justify-space-between align-center mb-4">
         <h2 :style="{ color: '#347899' }">Gerenciar Usuários</h2>
         <v-btn
           class="text-none"
@@ -13,7 +13,7 @@
         </v-btn>
       </v-row>
 
-      <v-card-item>
+      <v-card-item class="pa-0">
         <v-data-table
           class="custom-table"
           :header-props="{ class: 'header-color' }"

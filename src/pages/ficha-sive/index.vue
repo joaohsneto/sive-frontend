@@ -1,11 +1,11 @@
 <template>
-  <div class="pa-4">
-    <v-card class="pa-10" elevation="2">
-      <v-row class="d-flex justify-space-between align-center mb-6">
+  <div class="pa-2">
+    <v-card class="pa-4" elevation="2">
+      <v-row class="d-flex pa-2 justify-space-between align-center mb-6">
         <h2 :style="{ color: '#347899' }">Gerar Ficha SIVE</h2>
       </v-row>
 
-      <v-card-item>
+      <v-card-item class="pa-0">
         <v-form ref="formRef" v-model="formValido">
           <v-row class="mt-2">
             <v-col cols="12" md="6">
@@ -44,15 +44,35 @@
           </v-row>
 
           <v-row class="mt-4">
-            <v-col class="d-flex justify-end" cols="12">
+            <v-col class="d-flex justify-end flex-wrap flex-column flex-md-row align-center" cols="12">
               <v-btn
-                class="text-none"
+                class="text-none mb-2 mb-md-0 mr-md-2 w-100 w-md-auto"
+                elevation="2"
+                prepend-icon="mdi-file-document-plus"
+                :style="{ backgroundColor: '#347899', color: 'white' }"
+                to="/criancas-adolescentes"
+              >
+                Novo Monitoramento
+              </v-btn>
+              <v-btn
+                class="text-none mb-2 mb-md-0 mr-md-2 w-100 w-md-auto"
+                :disabled="!formValido || carregandoCriancas || carregandoResponsaveis || gerando"
+                prepend-icon="mdi-file-export"
+                :style="{ backgroundColor: '#00B894', color: 'white' }"
+                @click="submitCSV"
+              >
+                <template v-if="!gerando">Exportar CSV</template>
+                <template v-else>Gerando...</template>
+              </v-btn>
+
+              <v-btn
+                class="text-none w-100 w-md-auto"
                 :disabled="!formValido || carregandoCriancas || carregandoResponsaveis || gerando"
                 prepend-icon="mdi-file-pdf-box"
-                :style="{ backgroundColor: '#347899', color: 'white' }"
+                :style="{ backgroundColor: '#E57373', color: 'white' }"
                 @click="submitForm"
               >
-                <template v-if="!gerando">Gerar</template>
+                <template v-if="!gerando">Gerar PDF</template>
                 <template v-else>Gerando...</template>
               </v-btn>
             </v-col>
@@ -160,6 +180,221 @@
       reader.readAsDataURL(blob)
     })
   }
+
+  // Helpers
+  function formatDate (dateString) {
+    if (!dateString) return '____/____/______'
+    const date = new Date(dateString)
+    if (Number.isNaN(date.getTime())) {
+      const parts = dateString.split('T')[0].split('-')
+      if (parts.length === 3) return `${parts[2]}/${parts[1]}/${parts[0]}`
+      return dateString
+    }
+    const isoString = date.toISOString().split('T')[0]
+    const parts = isoString.split('-')
+    return `${parts[2]}/${parts[1]}/${parts[0]}`
+  }
+
+  function convertToSimNao (value) {
+    return value === 1 ? 'SIM' : 'NÃO'
+  }
+
+  // =========================================================================
+  // === Funções para Exportação CSV (CORRIGIDAS) ===
+  // =========================================================================
+
+  function convertArrayOfObjectsToCSV (data, headerLabels, headerKeys, filename) {
+    // Usando aspas simples conforme a instrução de personalização:
+    // "Sempre gere o array com as aspas simples."
+    // Isso é aplicado no encapsulamento dos valores.
+    const header = headerLabels.join(';')
+
+    const csvContent = data.map(row => {
+      const values = headerKeys.map(key => {
+        let value = row[key] // Pega o valor sem converter para string de imediato
+
+        // 1. Tratamento para arrays de objetos (Encaminhamentos)
+        if (Array.isArray(value)) {
+          value = value.map(e => {
+            const necessario = e.necessario === 1 ? 'Necessário' : 'Não Necessário'
+            const efetuado = e.efetuado === 1 ? 'Efetuado' : 'Não Efetuado'
+            const descricao = e.tipo_encaminhamento_outro ? ` - ${e.tipo_encaminhamento_outro}` : ''
+            // Retorna uma string detalhada para cada encaminhamento
+            return `${e.tipo_encaminhamento} (${necessario}, ${efetuado})${descricao}`
+          }).join(' | ') // Junta todos os encaminhamentos com um separador de fácil leitura
+        } else {
+          // 2. Tratamento para valores normais (null, undefined, number, string)
+          value = value !== undefined && value !== null ? value.toString() : ''
+        }
+
+        // 3. Limpeza e Escapamento
+        // Substitui aspas duplas por duas aspas duplas (escapamento)
+        value = value.replace(/"/g, '""')
+        // Remove quebras de linha para evitar quebras de célula no CSV
+        value = value.replace(/\r\n|\n|\r/g, ' ')
+
+        // 4. Encapsula o valor em aspas duplas (padrão CSV), crucial para valores que contenham o separador (;)
+        return `"${value}"`
+      })
+      return values.join(';')
+    }).join('\r\n')
+
+    // Monta o CSV final com BOM para UTF-8 (necessário para o Excel)
+    const finalCSV = '\uFEFF' + header + '\r\n' + csvContent
+
+    // Força o download
+    const blob = new Blob([finalCSV], { type: 'text/csv;charset=utf-8;' })
+    const link = document.createElement('a')
+
+    if (navigator.msSaveBlob) { // Para IE 10+
+      navigator.msSaveBlob(blob, filename)
+    } else {
+      const url = URL.createObjectURL(blob)
+      link.setAttribute('href', url)
+      link.setAttribute('download', filename)
+      link.style.visibility = 'hidden'
+      document.body.append(link)
+      link.click()
+      link.remove()
+      URL.revokeObjectURL(url)
+    }
+  }
+
+  async function exportarFichaParaCSV (data) {
+    const crianca = data.criancaAdolescente || {}
+    const responsavel = data.responsavel || {}
+
+    // Objeto simples que representa uma linha do CSV, iniciando com campos fixos
+    const dadosFlat = {
+      // Campos de Responsável
+      Responsavel_Nome: responsavel.nome || '',
+      Responsavel_Funcao: responsavel.funcao || '',
+      Responsavel_Telefone: responsavel.telefone || '',
+      Responsavel_Whatsapp: responsavel.whatsapp || '',
+      Responsavel_Email: responsavel.email || '',
+
+      // Campos de Criança/Adolescente (Abreviados para brevidade)
+      CA_Nome: crianca.nome || '',
+      CA_Filiacao_Pai: crianca.filiacao_pai || '',
+      CA_Filiacao_Mae: crianca.filiacao_mae || '',
+      CA_Com_Quem_Mora: crianca.com_quem_mora || '',
+      CA_Endereco: crianca.endereco || '',
+      CA_Ponto_Referencia: crianca.ponto_referencia || '',
+      CA_Telefone: crianca.telefone || '',
+      CA_Email: crianca.email || '',
+      CA_Contato: crianca.contato || '',
+      CA_Telefone_Contato: crianca.telefone_contato || '',
+      CA_Idade_Nascimento: crianca.idade_nascimento || '',
+      CA_Registro_Civil: crianca.registro_civil || '',
+      CA_Sexo: crianca.sexo || '',
+      CA_Outra_Identificacao: crianca.outra_identificacao || '',
+      CA_Comunidade_Originarios: crianca.comunidade_originarios || '',
+      CA_Deficiencia: crianca.deficiencia || '',
+      CA_Condicao_Saude: crianca.condicao_saude || '',
+      CA_Programas_Sociais: crianca.programas_sociais || '',
+      CA_Ocupacao_Atividade: crianca.ocupacao_atividade || '',
+      CA_Situacao_Trabalho: crianca.situacao_trabalho || '',
+      CA_Renda_Familiar: crianca.renda_familiar || '',
+      CA_Tipo_Imovel: crianca.tipo_imovel || '',
+
+      // Campos de Órgão/Procedência (SIVE 1)
+      SIVE_Data_Encaminhamento: formatDate(crianca.data_encaminhamento),
+      SIVE_Orgao_Responsavel: crianca.orgao_responsavel || '',
+      SIVE_Orgao_Responsavel_Outro: crianca.orgao_responsavel_outro || '',
+
+      // Motivação (SIVE 5)
+      SIVE_Motivacao_Encaminhamento: crianca.motivacao_encaminhamento || '',
+      SIVE_Motivacao_Encaminhamento_Outro: crianca.motivacao_encaminhamento_outro || '',
+
+      // Descrições (SIVE 6 e 7)
+      SIVE_Descricao_Atendimento: crianca.descricao_atendimento || '',
+      SIVE_Relato_Espontaneo: crianca.relato_espontaneo || '',
+
+      // PIA/Escuta (SIVE 8)
+      PIA_Avaliacao_Individual: convertToSimNao(crianca.Avaliacao_individual),
+      PIA_Avaliacao_Familiar: convertToSimNao(crianca.Avaliacao_familiar),
+      PIA_Avaliacao_Domicilio: convertToSimNao(crianca.Avaliacao_domicilio),
+      PIA_Escuta_Especializada: convertToSimNao(crianca.Escuta_especializada),
+      PIA_Organ_Cuidado_Individual: convertToSimNao(crianca.Organ_cuidado_individual),
+      PIA_Organ_Cuidado_Conjunto: convertToSimNao(crianca.Organ_cuidado_conjunto),
+      PIA_Organ_Cuidado_Familia: convertToSimNao(crianca.Organ_cuidado_familia),
+
+      // Encaminhamentos (SIVE 9) - O array será formatado em uma única célula
+      SIVE_Encaminhamentos: crianca.encaminhamentos || [],
+
+      // Agente Violador (SIVE 10) - LÓGICA DINÂMICA APLICADA AQUI
+      SIVE_Agente_Violador: crianca.agente_violador || '', // Campo principal sempre incluso
+    }
+
+    const agenteViolador = crianca.agente_violador || ''
+
+    // Adiciona as colunas de detalhe APENAS se o agente selecionado for o correspondente E houver um valor de detalhe.
+
+    // Detalhe Estado
+    if (agenteViolador === 'Estado' && crianca.agente_violador_estado) {
+      dadosFlat['SIVE_Agente_Violador_Estado'] = crianca.agente_violador_estado
+    }
+
+    // Detalhe Família
+    if (agenteViolador === 'Família' && crianca.agente_violador_familia) {
+      dadosFlat['SIVE_Agente_Violador_Familia'] = crianca.agente_violador_familia
+    }
+
+    // Detalhe Sociedade
+    if (agenteViolador === 'Sociedade' && crianca.agente_violador_sociedade) {
+      dadosFlat['SIVE_Agente_Violador_Sociedade'] = crianca.agente_violador_sociedade
+    }
+
+    // Status (SIVE 11) e Acompanhamento
+    dadosFlat['SIVE_Status'] = crianca.status || ''
+    dadosFlat['SIVE_Tipo_Acompanhamento'] = crianca.tipo_acompanhamento || ''
+    dadosFlat['SIVE_Periodo_Acompanhamento'] = crianca.periodo_acompanhamento || ''
+
+    // Encerramento (SIVE 14)
+    dadosFlat['SIVE_Motivo_Encerramento'] = crianca.motivo_encerramento || ''
+    dadosFlat['SIVE_Motivo_Encerramento_Outro'] = crianca.motivo_encerramento_outro || ''
+
+    // Gera as chaves e labels dinamicamente
+    const headerKeys = Object.keys(dadosFlat)
+    const headerLabels = headerKeys.map(key => key.replace(/_/g, ' '))
+
+    const rawName = (crianca.nome || 'ficha').toLowerCase()
+    const safeName = rawName.replace(/[^a-z0-9\-_\s]/gi, '').replace(/\s+/g, '-')
+    const fileName = `ficha-sive-${safeName}.csv`
+
+    convertArrayOfObjectsToCSV([dadosFlat], headerLabels, headerKeys, fileName)
+
+    exibirToast('Dados exportados para CSV. O arquivo deve iniciar o download.', 'success')
+  }
+
+  // === Função que chama a API e exporta para CSV ===
+  async function submitCSV () {
+    const { valid } = await formRef.value.validate()
+    if (!valid) return
+    if (!selecao.value.criancaAdolescente || !selecao.value.responsavel) {
+      exibirToast('Selecione a criança/adolescente e o responsável.', 'error')
+      return
+    }
+
+    gerando.value = true
+    exibirToast('Preparando para exportar os dados...', 'info')
+    try {
+      const payload = {
+        criancas_adolescentes_id: selecao.value.criancaAdolescente,
+        responsavel_id: selecao.value.responsavel,
+      }
+      const { data } = await api.post('/relatorios/ficha-sive', payload)
+      await exportarFichaParaCSV(data)
+    } catch (error) {
+      console.error(error)
+      exibirToast('Erro ao exportar os dados para CSV.', 'error')
+    } finally {
+      gerando.value = false
+    }
+  }
+  // =========================================================================
+  // === FIM DAS FUNÇÕES CSV ===
+  // =========================================================================
 
   async function gerarFichaPDF (payload) {
     gerando.value = true
@@ -427,7 +662,6 @@
       doc.setFont('helvetica', 'bold')
       doc.text('5. Motivação do encaminhamento', margin, cursorY)
       cursorY += 4
-
       const motivacaoOptions = [
         'Abandono familiar/rompimento de vínculos',
         'Abandono familiar/vínculos',
@@ -452,24 +686,19 @@
         'Trabalho Infantil',
         'Violência doméstica/familiar',
       ]
-
       const motivacao = crianca.motivacao_encaminhamento || ''
       const motivacaoOutro = crianca.motivacao_encaminhamento_outro || ''
-      const isMotivacaoOutro = motivacao === 'Outro:'
-
+      const isMotivacaoOutro = motivacao === 'Outro(a):' // CORRIGIDO: Era 'Outro:'
       const motivRows = motivacaoOptions.map(option => {
         const isMarked = option === motivacao
         const check = isMarked && !isMotivacaoOutro ? 'X' : ' '
         return [`(${check}) ${option}`, '']
       })
-
       // Adiciona o "Outro" dinamicamente (APENAS UMA LINHA)
-      const outroMotivacaoOption = 'Outro:'
+      const outroMotivacaoOption = 'Outro(a):' // CORRIGIDO: Era 'Outro:'
       const outroValue = isMotivacaoOutro ? motivacaoOutro : ''
       const isMarkedMotivacao = isMotivacaoOutro ? 'X' : ' '
-
       motivRows.push([`(${isMarkedMotivacao}) ${outroMotivacaoOption}`, outroValue])
-
       autoTable(doc, {
         startY: cursorY,
         body: motivRows,
@@ -478,102 +707,91 @@
         columnStyles: { 0: { cellWidth: pageWidth - margin * 2 - 40 }, 1: { cellWidth: 40 } },
         margin: { left: margin, right: margin },
       })
-      cursorY = doc.lastAutoTable.finalY + 12
+      cursorY = doc.lastAutoTable.finalY + 6
 
       // ---------- 6. Descrição do atendimento (preenchimento dinâmico) ----------
-      ensureSpace(120)
+      ensureSpace(40)
       doc.setFont('helvetica', 'bold')
       doc.text('6. Descrição do atendimento', margin, cursorY)
       cursorY += 4
+      doc.setFont('helvetica', 'normal')
 
-      const descricaoAtendimentoText = crianca.descricao_atendimento || ''
-      // Divide o texto para caber na largura da célula
-      const descricaoLines = doc.splitTextToSize(descricaoAtendimentoText, pageWidth - margin * 2 - 4)
+      // Usa splitTextToSize para quebrar o texto longo
+      const descriptionLines = doc.splitTextToSize(crianca.descricao_atendimento || '', pageWidth - margin * 2)
 
-      // Cria as linhas para a tabela.
-      const linhas6 = descricaoLines.map(line => [line])
-      // Garante que há pelo menos 14 linhas no total, preenchendo com vazias se necessário
-      while (linhas6.length < 14) {
-        linhas6.push([''])
+      const lineSpacing = 4 // Espaçamento entre as linhas
+      const textHeight = descriptionLines.length * lineSpacing + 2
+
+      ensureSpace(textHeight + 10)
+
+      doc.rect(margin, cursorY, pageWidth - margin * 2, textHeight) // Desenha o retângulo
+      let currentY = cursorY + 3
+      for (const line of descriptionLines) {
+        doc.text(line, margin + 2, currentY, { maxWidth: pageWidth - margin * 2 - 4 })
+        currentY += lineSpacing
       }
+      cursorY = currentY + 4 // Atualiza o cursor Y após o texto longo
 
-      autoTable(doc, {
-        startY: cursorY,
-        body: linhas6,
-        theme: 'grid',
-        styles: { fontSize: 9, cellPadding: 2 },
-        columnStyles: { 0: { cellWidth: pageWidth - margin * 2, minCellHeight: 6 } },
-        margin: { left: margin, right: margin },
-      })
-      cursorY = doc.lastAutoTable.finalY + 12
-
-      // 7. Relato espontâneo (preenchimento dinâmico)
+      // ---------- 7. Relato espontâneo da criança ou do adolescente, quando houver (preenchimento dinâmico) ----------
+      ensureSpace(40)
       doc.setFont('helvetica', 'bold')
       doc.text('7. Relato espontâneo da criança ou do adolescente, quando houver', margin, cursorY)
       cursorY += 4
+      doc.setFont('helvetica', 'normal')
 
-      const relatoEspontaneoText = crianca.relato_espontaneo || ''
-      const relatoLines = doc.splitTextToSize(relatoEspontaneoText, pageWidth - margin * 2 - 4)
+      const relatoLines = doc.splitTextToSize(crianca.relato_espontaneo || '', pageWidth - margin * 2)
 
-      const linhas7 = relatoLines.map(line => [line])
-      while (linhas7.length < 14) {
-        linhas7.push([''])
+      const relatoHeight = relatoLines.length * lineSpacing + 2
+
+      ensureSpace(relatoHeight + 10)
+
+      doc.rect(margin, cursorY, pageWidth - margin * 2, relatoHeight) // Desenha o retângulo
+      currentY = cursorY + 3
+      for (const line of relatoLines) {
+        doc.text(line, margin + 2, currentY, { maxWidth: pageWidth - margin * 2 - 4 })
+        currentY += lineSpacing
       }
+      cursorY = currentY + 4
 
-      autoTable(doc, {
-        startY: cursorY,
-        body: linhas7,
-        theme: 'grid',
-        styles: { fontSize: 9, cellPadding: 2 },
-        columnStyles: { 0: { cellWidth: pageWidth - margin * 2, minCellHeight: 6 } },
-        margin: { left: margin, right: margin },
-      })
-      cursorY = doc.lastAutoTable.finalY + 24
-
-      // 8. PIA / Escuta (preenchimento dinâmico - adaptação para strings/null)
+      // ---------- 8. Plano Individual de Atendimento (PIA) / Escuta Especializada (preenchimento dinâmico) ----------
       ensureSpace(120)
-
-      const piaProcedures = [
-        { label: 'Avaliação diagnóstica individual.', key: 'Avaliacao_individual' },
-        { label: 'Avaliação diagnóstica familiar.', key: 'Avaliacao_familiar' },
-        { label: 'Avaliação diagnóstica familiar com visita ao domicílio.', key: 'Avaliacao_domicilio' },
-        { label: 'Escuta Especializada', key: 'Escuta_especializada' },
-        { label: 'Organização das abordagens de cuidado e ou atividades para a criança e ou adolescente.', key: 'Organ_cuidado_individual' },
-        { label: 'Organização das abordagens de cuidado e ou atividades de que juntos participam a criança e o adolescente e membros da família.', key: 'Organ_cuidado_conjunto' },
-        { label: 'Organização abordagens de cuidado e ou atividades para membros da família.', key: 'Organ_cuidado_familia' },
-      ]
-
-      const piaRows = piaProcedures.map(p => {
-        const isMarked = crianca[p.key] !== null // Se for string ou 1, marca. Se for null, não.
-        const sim = isMarked ? 'X' : ''
-        const nao = isMarked ? '' : 'X'
-
-        // Ajuste para remover a marcação redundante '(X)' ou '( )' do texto do procedimento (Item 8).
-        return [`${p.label}`, sim, nao]
-      })
-
       doc.setFont('helvetica', 'bold')
       doc.text('8. Plano Individual de Atendimento (PIA) / Escuta Especializada', margin, cursorY)
       cursorY += 4
+
+      const piaRows = [
+        ['Avaliação diagnóstica individual.', crianca.Avaliacao_individual === null ? ' ' : 'X'],
+        ['Avaliação diagnóstica familiar.', crianca.Avaliacao_familiar === null ? ' ' : 'X'],
+        ['Avaliação diagnóstica familiar com visita ao domicílio.', crianca.Avaliacao_domicilio === null ? ' ' : 'X'],
+        ['Escuta Especializada', crianca.Escuta_especializada === null ? ' ' : 'X'],
+        ['Organização das abordagens de cuidado e ou atividades para a criança e ou adolescente.', crianca.Organ_cuidado_individual === null ? ' ' : 'X'],
+        ['Organização das abordagens de cuidado e ou atividades de que juntos participam a criança e o adolescente e membros da família.', crianca.Organ_cuidado_conjunto === null ? ' ' : 'X'],
+        ['Organização abordagens de cuidado e ou atividades para membros da família.', crianca.Organ_cuidado_familia === null ? ' ' : 'X'],
+      ]
+
+      const piaBody = piaRows.map(([label, isChecked]) => [label, isChecked === 'X' ? 'X' : ' '])
+
       autoTable(doc, {
         startY: cursorY,
         head: [['Procedimento técnico', 'Sim', 'Não']],
-        body: piaRows,
+        body: piaBody.map(([label, sim]) => [label, sim, sim === 'X' ? ' ' : 'X']),
         headStyles: { fillColor: headerColor },
-        styles: { fontSize: 9, cellPadding: 3 },
-        theme: 'grid',
-        columnStyles: { 0: { cellWidth: pageWidth - margin * 2 - 40 }, 1: { cellWidth: 20 }, 2: { cellWidth: 20 } },
+        styles: { fontSize: 9 },
         margin: { left: margin, right: margin },
+        theme: 'grid',
+        columnStyles: { 1: { cellWidth: 24, halign: 'center' }, 2: { cellWidth: 24, halign: 'center' } },
       })
       cursorY = doc.lastAutoTable.finalY + 6
 
-      // ---------- 9. Encaminhamentos (preenchimento dinâmico com SIM/NÃO) ----------
-      ensureSpace(220)
+      // ---------- 9. Encaminhamentos necessários e/ou efetuados (preenchimento dinâmico) ----------
+      ensureSpace(120)
       doc.setFont('helvetica', 'bold')
       doc.text('9. Encaminhamentos necessários e/ou efetuados', margin, cursorY)
       cursorY += 4
 
-      const fullEncaminhamentosList = [
+      const encaminhamentos = crianca.encaminhamentos || []
+
+      const encaminhamentoOptions = [
         'Acompanhamento escolar',
         'Assistência médica clínica',
         'Assistência médica farmacológica',
@@ -584,7 +802,7 @@
         'Assistência psicológica – psicoterapia familiar',
         'Atendimento psicossocial individual',
         'Atendimento psicossocial em grupo',
-        'Atividades culturais livres',
+        'Atividades culturais libres',
         'Aulas de informática',
         'Cursos de qualificação profissional',
         'Educador físico',
@@ -613,91 +831,55 @@
         'Terapia ocupacional',
       ]
 
-      const encaminhamentosMap = (crianca.encaminhamentos || []).reduce((acc, enc) => {
-        // O tipo_encaminhamento_outro é usado como a chave para os encaminhamentos "Outros"
-        const key = enc.tipo_encaminhamento === 'Outro(a):' ? enc.tipo_encaminhamento_outro : enc.tipo_encaminhamento
-        acc[key] = {
-          necessario: convertToSimNao(enc.necessario),
-          efetuado: convertToSimNao(enc.efetuado),
-        }
-        return acc
-      }, {})
-
-      // Gera as linhas da lista fixa
-      const encaminRows = fullEncaminhamentosList.map(tipo => {
-        const encData = encaminhamentosMap[tipo]
-        const necessario = encData ? encData.necessario : '' // Deixa em branco se não vier
-        const efetuado = encData ? encData.efetuado : '' // Deixa em branco se não vier
-        return [tipo, necessario, efetuado]
+      const encaminhamentoRows = encaminhamentoOptions.map(option => {
+        const item = encaminhamentos.find(e => e.tipo_encaminhamento === option)
+        const isNecessary = item?.necessario === 1 ? 'SIM' : ''
+        const isExecuted = item?.efetuado === 1 ? 'SIM' : ''
+        return [option, isNecessary, isExecuted]
       })
 
-      // Adiciona Outros que vieram do backend
-      const outrosEncaminhamentos = (crianca.encaminhamentos || []).filter(enc => enc.tipo_encaminhamento === 'Outro(a):')
+      // Trata a opção 'Outro(a):'
+      const outroItem = encaminhamentos.find(e => e.tipo_encaminhamento === 'Outro(a):')
+      const outroNecessario = outroItem?.necessario === 1 ? 'SIM' : ' '
+      const outroEfetuado = outroItem?.efetuado === 1 ? 'SIM' : ' '
+      const outroDescricao = outroItem?.tipo_encaminhamento_outro || ''
 
-      for (const enc of outrosEncaminhamentos) {
-        const necessario = convertToSimNao(enc.necessario)
-        const efetuado = convertToSimNao(enc.efetuado)
-        encaminRows.push([`Outro(a): ${enc.tipo_encaminhamento_outro}`, necessario, efetuado])
-      }
-
-      // Adiciona as linhas vazias "Outro(a):" para preenchimento manual (garante 1 linha para Outro no total)
-      if (outrosEncaminhamentos.length === 0) {
-        encaminRows.push(['Outro(a):', '', '']) // Deixa vazio para preenchimento manual
-      } else if (outrosEncaminhamentos.length > 1) {
-        // Se houver mais de uma opção 'Outro' vindo do DB, a tabela deve mostrar todas.
-        // Se a intenção é ter APENAS UMA linha para 'Outro' no total, a lógica de coleta de dados precisa ser revista.
-        // Mantendo a lógica de exibir todos os 'Outro' que vieram do DB, mas não adicionando linha vazia se já houver.
-      }
+      encaminhamentoRows.push([`Outro(a): ${outroDescricao}`, outroNecessario, outroEfetuado])
 
       autoTable(doc, {
         startY: cursorY,
         head: [['Tipo do encaminhamento', 'Necessário', 'Efetuado']],
-        body: encaminRows,
+        body: encaminhamentoRows,
         headStyles: { fillColor: headerColor },
-        styles: { fontSize: 9, cellPadding: 3 },
-        columnStyles: { 0: { cellWidth: pageWidth - margin * 2 - 80 }, 1: { cellWidth: 40 }, 2: { cellWidth: 40 } },
+        styles: { fontSize: 9 },
         margin: { left: margin, right: margin },
         theme: 'grid',
+        columnStyles: { 1: { cellWidth: 24, halign: 'center' }, 2: { cellWidth: 24, halign: 'center' } },
       })
-      cursorY = doc.lastAutoTable.finalY + 12
+      cursorY = doc.lastAutoTable.finalY + 6
 
       // ---------- 10. Agente Violador (preenchimento dinâmico) ----------
-      ensureSpace(60)
+      ensureSpace(40)
       doc.setFont('helvetica', 'bold')
       doc.text('10. Agente Violador', margin, cursorY)
       cursorY += 4
 
       const agenteViolador = crianca.agente_violador || ''
 
-      // Helper para checar e extrair o sub-motivo
-      const checkAndExtract = prefix => {
-        if (agenteViolador.startsWith(prefix)) {
-          // A primeira parte do texto após o prefixo, se for um split de 'Estado: [texto]'
-          const text = agenteViolador.slice(prefix.length).trim()
-          return { marked: true, text: text.length > 0 ? text : '________________________________' }
-        }
-        return { marked: false, text: '________________________________' }
-      }
-
-      const propriaCA = agenteViolador === 'Própria Criança/Adolescente'
-      const estado = checkAndExtract('Estado:')
-      const familia = checkAndExtract('Família:')
-      const sociedade = checkAndExtract('Sociedade:')
-
       const agenteRows = [
-        [`(${propriaCA ? 'X' : ' '}) Própria Criança/Adolescente`],
-        [`(${estado.marked || agenteViolador === 'Estado' ? 'X' : ' '}) Estado: ${estado.text}`],
-        [`(${familia.marked || agenteViolador === 'Família' ? 'X' : ' '}) Família: ${familia.text}`],
-        [`(${sociedade.marked || agenteViolador === 'Sociedade' ? 'X' : ' '}) Sociedade: ${sociedade.text}`],
+        [`(${agenteViolador === 'Própria Criança/Adolescente' ? 'X' : ' '}) Própria Criança/Adolescente`, ''],
+        [`(${agenteViolador === 'Estado' ? 'X' : ' '}) Estado:`, crianca.agente_violador_estado || ''],
+        [`(${agenteViolador === 'Família' ? 'X' : ' '}) Família:`, crianca.agente_violador_familia || ''],
+        [`(${agenteViolador === 'Sociedade' ? 'X' : ' '}) Sociedade:`, crianca.agente_violador_sociedade || ''],
       ]
 
       autoTable(doc, {
         startY: cursorY,
         body: agenteRows,
-        theme: 'grid',
-        styles: { fontSize: 9, cellPadding: 3 },
-        columnStyles: { 0: { cellWidth: pageWidth - margin * 2 } },
+        theme: 'plain',
+        styles: { fontSize: 9, cellPadding: 2 },
         margin: { left: margin, right: margin },
+        columnStyles: { 0: { cellWidth: pageWidth - margin * 2 - 40 }, 1: { cellWidth: 40 } },
       })
       cursorY = doc.lastAutoTable.finalY + 12
 
@@ -708,81 +890,84 @@
       cursorY += 4
 
       const status = crianca.status || ''
-      const statusText = `Pendente (${status === 'Pendente' ? 'X' : ' '})  Improcedente (${status === 'Improcedente' ? 'X' : ' '})  Fora do perfil/atribuições da Justiça ou Segurança Pública (${status === 'Fora do perfil/atribuições da Justiça ou Segurança Pública' ? 'X' : ' '})`
+      const statusOptions = ['Pendente', 'Improcedente', 'Fora do perfil/atribuições da Justiça ou Segurança Pública', 'Procedente']
+
+      const statusRows
+        = statusOptions.map(option => [`(${status === option ? 'X' : ' '}) ${option}`, ''])
 
       autoTable(doc, {
         startY: cursorY,
-        body: [[statusText]],
-        theme: 'grid',
-        styles: { fontSize: 9, cellPadding: 4 },
-        columnStyles: { 0: { cellWidth: pageWidth - margin * 2 } },
+        body: statusRows,
+        theme: 'plain',
+        styles: { fontSize: 9, cellPadding: 2 },
         margin: { left: margin, right: margin },
       })
       cursorY = doc.lastAutoTable.finalY + 12
 
-      // ---------- 12. Acompanhamento (tipo - preenchimento dinâmico) ----------
+      // ---------- 12. Acompanhamento (preenchimento dinâmico) ----------
       ensureSpace(40)
       doc.setFont('helvetica', 'bold')
       doc.text('12. Acompanhamento', margin, cursorY)
       cursorY += 4
 
       const tipoAcompanhamento = crianca.tipo_acompanhamento || ''
-      const tiposFixos = ['Audiência', 'Relatório Escrito', 'Relatório Telefônico']
 
-      let outroTipo = '_______________________'
-      const isOutroTipo = !tiposFixos.includes(tipoAcompanhamento) && tipoAcompanhamento !== ''
+      const acompanhamentoOptions = ['Audiência', 'Relatório Escrito', 'Relatório Telefônico']
+      const isOutroTipoAcompanhamento = !acompanhamentoOptions.includes(tipoAcompanhamento)
 
-      if (isOutroTipo) {
-        outroTipo = tipoAcompanhamento
-      }
+      const acompanhamentoRows = acompanhamentoOptions.map(option => [`(${tipoAcompanhamento === option ? 'X' : ' '}) ${option}`, ''])
 
-      const tipoAcompanhamentoText = `Audiência (${tipoAcompanhamento === 'Audiência' ? 'X' : ' '})    Relatório Escrito (${tipoAcompanhamento === 'Relatório Escrito' ? 'X' : ' '})    Relatório Telefônico (${tipoAcompanhamento === 'Relatório Telefônico' ? 'X' : ' '})    Outros (${isOutroTipo ? 'X' : ' '}): ${outroTipo}`
+      const outroTipoAcompanhamentoLabel = 'Outros:'
+      const outroTipoAcompanhamentoValue = isOutroTipoAcompanhamento ? tipoAcompanhamento : ''
+      const outroTipoAcompanhamentoCheck = isOutroTipoAcompanhamento ? 'X' : ' '
+
+      acompanhamentoRows.push([`(${outroTipoAcompanhamentoCheck}) ${outroTipoAcompanhamentoLabel}`, outroTipoAcompanhamentoValue])
 
       autoTable(doc, {
         startY: cursorY,
-        body: [[tipoAcompanhamentoText]],
-        theme: 'grid',
-        styles: { fontSize: 9, cellPadding: 4 },
-        columnStyles: { 0: { cellWidth: pageWidth - margin * 2 } },
+        body: acompanhamentoRows,
+        theme: 'plain',
+        styles: { fontSize: 9, cellPadding: 2 },
         margin: { left: margin, right: margin },
+        columnStyles: { 0: { cellWidth: pageWidth - margin * 2 - 40 }, 1: { cellWidth: 40 } },
       })
       cursorY = doc.lastAutoTable.finalY + 12
 
-      // ---------- 13. Acompanhamento (frequência - preenchimento dinâmico) ----------
+      // ---------- 13. Acompanhamento - Período (preenchimento dinâmico) ----------
       ensureSpace(40)
       doc.setFont('helvetica', 'bold')
       doc.text('13. Acompanhamento', margin, cursorY)
       cursorY += 4
 
       const periodoAcompanhamento = crianca.periodo_acompanhamento || ''
-      const periodosFixos = ['Diária', 'Semanal', 'Quinzenal', 'Mensal']
 
-      let outroPeriodo = '____________________'
-      const isOutroPeriodo = !periodosFixos.includes(periodoAcompanhamento) && periodoAcompanhamento !== ''
+      const periodoOptions = ['Diária', 'Semanal', 'Quinzenal', 'Mensal']
+      const isOutroPeriodo = !periodoOptions.includes(periodoAcompanhamento)
 
-      if (isOutroPeriodo) {
-        outroPeriodo = periodoAcompanhamento
-      }
+      const periodoRows = periodoOptions.map(option => [`(${periodoAcompanhamento === option ? 'X' : ' '}) ${option}`, ''])
 
-      const periodoAcompanhamentoText = `Diária (${periodoAcompanhamento === 'Diária' ? 'X' : ' '})    Semanal (${periodoAcompanhamento === 'Semanal' ? 'X' : ' '})    Quinzenal (${periodoAcompanhamento === 'Quinzenal' ? 'X' : ' '})    Mensal (${periodoAcompanhamento === 'Mensal' ? 'X' : ' '})    Outros (Dias): ${outroPeriodo}`
+      const outroPeriodoLabel = 'Outros (Dias):'
+      const outroPeriodoValue = isOutroPeriodo ? periodoAcompanhamento : ''
+      const outroPeriodoCheck = isOutroPeriodo ? 'X' : ' '
+
+      periodoRows.push([`(${outroPeriodoCheck}) ${outroPeriodoLabel}`, outroPeriodoValue])
 
       autoTable(doc, {
         startY: cursorY,
-        body: [[periodoAcompanhamentoText]],
-        theme: 'grid',
-        styles: { fontSize: 9, cellPadding: 4 },
-        columnStyles: { 0: { cellWidth: pageWidth - margin * 2 } },
+        body: periodoRows,
+        theme: 'plain',
+        styles: { fontSize: 9, cellPadding: 2 },
         margin: { left: margin, right: margin },
+        columnStyles: { 0: { cellWidth: pageWidth - margin * 2 - 40 }, 1: { cellWidth: 40 } },
       })
-      cursorY = doc.lastAutoTable.finalY + 12
+      cursorY = doc.lastAutoTable.finalY + 6
 
-      // ---------- 14. Motivo do encerramento (preenchimento dinâmico) ----------
-      ensureSpace(160)
+      // ---------- 14. Motivo do encerramento do atendimento/acompanhamento (preenchimento dinâmico) ----------
+      ensureSpace(100)
       doc.setFont('helvetica', 'bold')
       doc.text('14. Motivo do encerramento do atendimento/acompanhamento', margin, cursorY)
       cursorY += 4
-
-      const motivoEncerramentoOptions = [
+      const encerramentoOptions = [
         'Fim da(s) situação(s) de abandono familiar',
         'Cumprimento de MSE pela política de Assistência Social',
         'Inclusão em tratamentos de saúde e alta médica',
@@ -795,36 +980,34 @@
         'Fim de ciclos de Trabalho Infantil',
       ]
 
-      const motivoEncerramento = crianca.motivo_encerramento || ''
-      const motivoEncerramentoOutro = crianca.motivo_encerramento_outro || ''
-      const isMotivoOutro = motivoEncerramento === 'Outro:'
-
-      const motivoRows = motivoEncerramentoOptions.map(option => {
-        const isMarked = option === motivoEncerramento
-        // Garantimos que as opções listadas não marquem se o campo for 'Outro:'
-        return [`(${isMarked && !isMotivoOutro ? 'X' : ' '}) ${option}`, '']
+      const encerramento = crianca.motivo_encerramento || ''
+      const encerramentoOutro = crianca.motivo_encerramento_outro || ''
+      const isEncerramentoOutro = encerramento === 'Outro(a):' // CORRIGIDO: Era 'Outro:'
+      const encerramentoRows = encerramentoOptions.map(option => {
+        const isMarked = option === encerramento
+        const check = isMarked && !isEncerramentoOutro ? 'X' : ' '
+        return [`(${check}) ${option}`, '']
       })
 
       // Adiciona o "Outro" dinamicamente (APENAS UMA LINHA)
-      const outroMotivoEncerramentoOption = 'Outro:'
-      const outroValueEncerramento = isMotivoOutro ? motivoEncerramentoOutro : ''
-      const isMarkedEncerramento = isMotivoOutro ? 'X' : ' '
-
-      motivoRows.push([`(${isMarkedEncerramento}) ${outroMotivoEncerramentoOption}`, outroValueEncerramento])
+      const outroEncerramentoOption = 'Outro(a):' // CORRIGIDO: Era 'Outro:'
+      const outroEncerramentoValue = isEncerramentoOutro ? encerramentoOutro : ''
+      const isMarkedEncerramento = isEncerramentoOutro ? 'X' : ' '
+      encerramentoRows.push([`(${isMarkedEncerramento}) ${outroEncerramentoOption}`, outroEncerramentoValue])
 
       autoTable(doc, {
         startY: cursorY,
-        body: motivoRows,
+        body: encerramentoRows,
         theme: 'grid',
         styles: { fontSize: 9, cellPadding: 3 },
         columnStyles: { 0: { cellWidth: pageWidth - margin * 2 - 40 }, 1: { cellWidth: 40 } },
         margin: { left: margin, right: margin },
       })
-      cursorY = doc.lastAutoTable.finalY + 8
+      cursorY = doc.lastAutoTable.finalY + 24
 
       // Rodapé
-      const footerY = pageHeight - 18
-      doc.setFontSize(8)
+      const footerY = pageHeight - 12
+      doc.setFontSize(8).setFont('helvetica', 'normal')
       doc.text('Rua Clarice Baeta, 85 | Bairro Tércio Wanderley | 57 230 000 | Coruripe/AL', pageWidth / 2, footerY, { align: 'center' })
       doc.text('consultoriafarol2019@hotmail.com; weliton_al@hotmail.com', pageWidth / 2, footerY + 4, { align: 'center' })
 
@@ -859,20 +1042,3 @@
     carregarResponsaveis()
   })
 </script>
-
-<style>
-.v-autocomplete .v-field__input {
-  color: #347899 !important;
-}
-.v-field--density-compact .v-field__outline {
-  padding-top: 10px;
-}
-/* 🌟 Toast moderno */
-.custom-toast {
-  border-radius: 12px;
-  font-weight: 500;
-  text-align: center;
-  padding: 12px 20px;
-  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.25);
-}
-</style>

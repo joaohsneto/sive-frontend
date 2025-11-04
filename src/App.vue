@@ -59,7 +59,7 @@
   .page-usuarios .v-main,
   .page-ficha-sive main,
   .page-ficha-sive .v-main {
-    margin-top: 60px !important; /* empurra os cards pra baixo */
+    margin-top: 80px !important; /* empurra os cards pra baixo */
   }
 }
 /* TRECHO PARA EMPURRAR OS CARDS PARA BAIXO EM PÁGINAS ESPECÍFICAS */

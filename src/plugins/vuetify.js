@@ -7,6 +7,8 @@
 // Composables
 import { createVuetify } from 'vuetify'
 
+import { VDateInput } from 'vuetify/labs/VDateInput'
+
 import { pt } from 'vuetify/locale'
 // Styles
 import '@mdi/font/css/materialdesignicons.css'
@@ -23,5 +25,9 @@ export default createVuetify({
     locale: 'pt',
     fallback: 'en',
     messages: { pt },
+  },
+
+  components: {
+    VDateInput,
   },
 })
